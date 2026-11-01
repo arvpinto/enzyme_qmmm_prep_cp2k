@@ -1,114 +1,112 @@
 <br>
-<h2> <p align="center"> <b>V - Charge correction for electrostatic embedding</b> </p></h2>
+<h2> <p align="center"> <b>V - MM minimization in CP2K</b> </p></h2>
 
 <br/>
 
 <pre style="color: white; background-color: black;">
-AMBER.prmtop  ->  charge_correction.parmed (ParmEd)  ->  AMBER_ee.prmtop  ->  &QMMM ECOUPL COULOMB / GAUSS
+amylase.prmtop + frame_xray.inpcrd + forceeval_subsys.cp2k.inc  ->  em.inp (FIST, GEO_OPT)  ->  EM-1.restart
 </pre>
 
 ---
 
 <br/>
 
-<h3> <p align="center"><b> Why the MM charges have to be corrected </b></p> </h3>
+<p align="justify">The first CP2K run is a classical minimization of the whole system with the force field (METHOD FIST). It relaxes the contacts left by tleap and by the new box, and it is the first test that CP2K reads the topology correctly. All CP2K inputs are in <a href="CP2K_INPUTS.zip">CP2K_INPUTS.zip</a>, and the stages can be run one by one or in sequence with run_cp2k.sh.</p>
 
 <br/>
 
-- <p align="justify">With mechanical embedding (ECOUPL NONE), the QM and MM regions interact through the force field: the QM atoms keep their MM point charges and Lennard-Jones parameters for the QM/MM terms. With electrostatic embedding (ECOUPL COULOMB for DFTB and semiempirical methods, ECOUPL GAUSS for DFT), the QM electron density feels the MM point charges directly, and the MM charges of the QM atoms are removed: the QM atoms are represented by their nuclei and their density.</p>
+<h3> <p align="center"><b> The input </b></p> </h3>
 
-- <p align="justify">Amber residues have integer charges, but their fragments do not. When the boundary cuts the C&alpha;-C&beta; bond, the side chain goes to the QM region and the backbone atoms left in the MM region carry a fractional charge. For the three cut residues of the example, the MM charges of the 74 QM atoms add up to +0.2044 e, so removing them leaves the MM region with a net charge of -0.2044 e, and puts a spurious fractional charge right next to the QM region:</p>
+<br/>
 
 <pre style="color: white; background-color: black;">
-Charge bookkeeping (e):
-  total charge of the system           : -0.000000
-  sum of MM charges of the QM atoms    : +0.204400
-  boundary residues (MM part -> target):
-         HID44  residue -0.0000  MM part -0.0075 -> +0  (correction +0.0075 on 6 atom(s))
-        ASP100  residue -1.0000  MM part -0.1419 -> +0  (correction +0.1419 on 6 atom(s))
-        SER206  residue -0.0000  MM part -0.0550 -> +0  (correction +0.0550 on 6 atom(s))
-  MM region charge after correction    : -0.000000
-  nominal QM charge (total - MM)       : -0.000000  ->  &DFT CHARGE 0
-</pre>
+@SET PARM amylase.prmtop
+@SET COORD frame_xray.inpcrd
+&GLOBAL
+  PROJECT EM
+  PRINT_LEVEL LOW
+  RUN_TYPE GEO_OPT
+&END GLOBAL
 
-<br/>
-
-- <p align="justify">The correction restores an integer charge in the MM part of every residue split by the boundary. Following the <a href="https://manual.cp2k.org/trunk/methods/qm_mm/builtin.html" target="_blank">CP2K biochemical QM/MM example</a>, the residual of each residue is spread evenly over its MM atoms, here the six backbone atoms N, H, CA, HA, C and O. The integer charge that the QM part then carries (ligand +1, Asp102 side chain -1, the other two side chains 0) gives the charge of the QM region, &DFT CHARGE 0.</p>
-
-<br/>
-
----
-
-<br/>
-
-<h3> <p align="center"><b> The corrected topology </b></p> </h3>
-
-<br/>
-
-- <p align="justify">cp2k_qmmm_setup.py writes the changes as a ParmEd script, and applies it when --ee-prmtop is given. Each line keeps the residue, atom name and old and new charges as a comment, so that the correction can be reviewed and reproduced:</p>
-
-<pre style="color: white; background-color: black;">
-cat charge_correction.parmed
-# Charge correction for electrostatic embedding (scheme: residue)
-# Usage: parmed -i charge_correction.parmed AMBER.prmtop
-change CHARGE @650 -0.414450   # HID44@N -0.415700 -> -0.414450
-change CHARGE @651 0.273150   # HID44@H +0.271900 -> +0.273150
-change CHARGE @652 0.020050   # HID44@CA +0.018800 -> +0.020050
-change CHARGE @653 0.089350   # HID44@HA +0.088100 -> +0.089350
-change CHARGE @665 0.598550   # HID44@C +0.597300 -> +0.598550
-change CHARGE @666 -0.566650   # HID44@O -0.567900 -> -0.566650
-change CHARGE @1641 -0.492650   # ASP100@N -0.516300 -> -0.492650
-...
-change CHARGE @3280 -0.558733   # SER206@O -0.567900 -> -0.558733
-outparm AMBER_ee.prmtop
-</pre>
-
-<pre style="color: white; background-color: black;">
-parmed -i charge_correction.parmed AMBER.prmtop     # same result as --ee-prmtop
-</pre>
-
-<br/>
-
-- <p align="justify">The corrected topology is used only for electrostatic embedding, in both PARM_FILE_NAME and CONN_FILE_NAME. Calculations with mechanical embedding and pure MM calculations keep the original AMBER.prmtop. The QM atoms keep their original charges in AMBER_ee.prmtop, so the total charge of this file is not an integer (+0.2044 in the example); that is expected, since CP2K does not use them.</p>
-
-<pre style="color: white; background-color: black;">
 &FORCE_EVAL
-    METHOD QMMM
+  METHOD FIST
+  STRESS_TENSOR ANALYTICAL
+  &MM
+    &FORCEFIELD
+      DO_NONBONDED
+      EI_SCALE14 0.8333333
+      IGNORE_MISSING_CRITICAL_PARAMS FALSE
+      PARMTYPE AMBER
+      PARM_FILE_NAME $PARM
+      SHIFT_CUTOFF TRUE
+      VDW_SCALE14 0.5
+      &SPLINE
+        EMAX_SPLINE 1.0E8
+        RCUT_NB [angstrom] 10
+      &END SPLINE
+    &END FORCEFIELD
     ...
-    &MM
-        &FORCEFIELD
-            ...
-            PARM_FILE_NAME AMBER_ee.prmtop
+    &POISSON
+      PERIODIC XYZ
+      POISSON_SOLVER PERIODIC
+      &EWALD
+        ALPHA .40
+        EWALD_TYPE SPME
+        GMAX 80
+        O_SPLINE 6
+        RCUT 10.0
         ...
-    &QMMM
-        ECOUPL COULOMB
-        @INCLUDE forceeval_qmmm.cp2k.inc
-    &END QMMM
-    &SUBSYS
-        &TOPOLOGY
-            CONN_FILE_FORMAT AMBER
-            CONN_FILE_NAME AMBER_ee.prmtop
-            ...
-        &END TOPOLOGY
-        @INCLUDE kinds_ee.cp2k.inc
-    &END SUBSYS
+      &END EWALD
+    &END POISSON
+  &END MM
+  &RESCALE_FORCES
+    MAX_FORCE 4.21648784E-2
+  &END RESCALE_FORCES
+  &SUBSYS
+    @INCLUDE forceeval_subsys.cp2k.inc
+    &TOPOLOGY
+      CONN_FILE_FORMAT AMBER
+      CONN_FILE_NAME $PARM
+      COORD_FILE_FORMAT CRD
+      COORD_FILE_NAME $COORD
+      ...
+    &END TOPOLOGY
+    &KIND NA+
+     ELEMENT Na
+    &END KIND
+    &KIND CL-
+     ELEMENT Cl
+    &END KIND
+  &END SUBSYS
+&END FORCE_EVAL
+
+&MOTION
+  &GEO_OPT
+    MAX_DR    1.0E-02
+    MAX_FORCE 1.0E-02
+    MAX_ITER 1000
+    OPTIMIZER LBFGS
+    RMS_DR    5.0E-03
+    RMS_FORCE 5.0E-03
+    TYPE MINIMIZATION
+  &END GEO_OPT
+  ...
+&END MOTION
 </pre>
 
 <br/>
 
-- <p align="justify">Note the kinds_ee.cp2k.inc file. CP2K builds one atomic kind per atom type and charge, so changing charges changes the list of kinds, and each topology needs its own &KIND file (Section IV).</p>
+- <p align="justify">The force field, the connectivity and the charges come from amylase.prmtop (PARMTYPE AMBER and CONN_FILE_FORMAT AMBER), the coordinates from the inpcrd file and the cell from forceeval_subsys.cp2k.inc. The &KIND sections give the element of the two ions whose kind names CP2K cannot map (Section I).</p>
 
-- <p align="justify">The output of CP2K shows the charge of the classical system after the QM atoms are removed, which is the quickest check that the correction was applied. With electrostatic embedding and the corrected topology:</p>
+- <p align="justify">EI_SCALE14 and VDW_SCALE14 are the inverse of the Amber SCEE (1.2) and SCNB (2.0) factors of ff99SB. CP2K applies them to every 1-4 pair and does not read the per-dihedral SCEE_SCALE_FACTOR and SCNB_SCALE_FACTOR sections of the prmtop. GLYCAM uses no 1-4 scaling (SCEE = SCNB = 1.0, as stored in the topology for its dihedrals), so in CP2K the 1-4 interactions of the oligosaccharide are scaled as in the protein. This affects only the MM sugars (the QM sugars are described by DFT), but it changes the MM conformational energies of the carbohydrate, and it is a reason why CP2K and Amber energies of this system will not agree exactly.</p>
 
-<pre style="color: white; background-color: black;">
- FORCEFIELD| Total charge of the classical system:                  0.0000018932
-</pre>
+- <p align="justify">SHIFT_CUTOFF TRUE shifts every real-space pair interaction to zero at the cutoff (10 &Aring;), which improves energy conservation in MD but adds a constant per pair: CP2K MM energies are then not directly comparable with Amber. Keep the same setting in all the calculations you compare.</p>
 
-<p align="justify">and with the uncorrected topology:</p>
+- <p align="justify">The electrostatics use SPME with ALPHA 0.40, a real-space cutoff of 10 &Aring; and GMAX 80. GMAX 80 is below the rule of thumb of one grid point per &Aring;ngstr&ouml;m for the 102 &Aring; edge of this box; if you validate the MM energy against Amber, test a finer grid (e.g. GMAX 89 103 91).</p>
 
-<pre style="color: white; background-color: black;">
- FORCEFIELD| Total charge of the classical system:                 -0.2044001141
-</pre>
+- <p align="justify">RESCALE_FORCES caps the force on any atom at 0.042 hartree/bohr (about 50 kcal mol<sup>-1</sup> &Aring;<sup>-1</sup>), so that a bad contact in the starting structure does not throw atoms across the box in the first steps.</p>
+
+- <p align="justify">The convergence criteria are loose (forces of 10<sup>-2</sup> hartree/bohr): the goal is to remove the strain, not to reach a minimum. The trajectory is written every 100 steps (EM-pos-1.dcd) and the restart file (EM-1.restart) at the end, which is the starting point of the QM/MM minimization.</p>
 
 <br/>
 
@@ -116,16 +114,43 @@ parmed -i charge_correction.parmed AMBER.prmtop     # same result as --ee-prmtop
 
 <br/>
 
-<h3> <p align="center"><b> Options </b></p> </h3>
+<h3> <p align="center"><b> Running the minimization </b></p> </h3>
 
 <br/>
 
-- <p align="justify">--charge-scheme link puts the whole residual of each residue on its MM link atom (C&alpha;) instead of spreading it. It keeps the rest of the residue unchanged, but concentrates the correction on the atom closest to the QM region, which can overpolarize it. --charge-scheme none writes no correction.</p>
+<pre style="color: white; background-color: black;">
+mpirun -np 4 cp2k.psmp -i em.inp -o em.out
+</pre>
 
-- <p align="justify">The script warns when the correction of a residue is larger than 0.15 e (--residual-warn): it means the boundary splits a polar or charged group, and a different cut is a better solution than a large correction.</p>
+<p align="justify">or with the script that runs all the stages of the tutorial, checking the files that each one needs:</p>
 
-- <p align="justify">--fix-lj gives a Lennard-Jones radius and well depth (R<sub>min</sub>/2 = 0.3019 &Aring;, &epsilon; = 0.047 kcal/mol, the values of a GAFF2 hydroxyl hydrogen used in the CP2K example) to the hydrogen types that have none in the force field, such as HO (hydroxyl) and HW (TIP3P water). Without repulsion, these positive MM charges can get too close to the QM density in electrostatic embedding QM/MM MD. The change applies to every atom of those types, including all water molecules, so it modifies the MM model: use it when you observe the problem, and consistently in all calculations.</p>
+<pre style="color: white; background-color: black;">
+./run_cp2k.sh -h
+./run_cp2k.sh -s em -n 4                       # this stage only
+./run_cp2k.sh -n 64 -e cp2k.psmp               # all stages: em em-me em-ee react smd
+./run_cp2k.sh -l srun -n 128 -s "em-ee react"  # inside a Slurm job
+./run_cp2k.sh -d                               # print the commands without running them
+</pre>
 
-- <p align="justify">QMMM_SCALE_FACTOR (Section IV) is complementary: it scales the charge of the MM link atom in the QM/MM potential only, and does not change the classical charge balance discussed here.</p>
+<br/>
+
+- <p align="justify">The cp2k_opt function of cp2k_funcs prints the convergence criteria at every optimization step:</p>
+
+<pre style="color: white; background-color: black;">
+source cp2k_funcs
+cp2k_opt em.out
+</pre>
+
+<br/>
+
+- <p align="justify">Read the beginning of em.out: the number of atoms, kinds and molecules, the cell and the charge of the system. The warning "A non Critical ForceField parameter is missing" is expected (Amber has no Urey-Bradley terms); activate &MM/&PRINT/&FF_INFO to list the missing terms and make sure that no bond, angle or torsion is among them. If CP2K warns that the CRD file has no velocity or box information, the warning is harmless: the cell is given in the input and the minimization needs no velocities.</p>
+
+- <p align="justify">Do not write an inline comment after PARM_FILE_NAME or CONN_FILE_NAME: CP2K takes it as part of the file name and stops with "Force field file missing".</p>
+
+- <p align="justify">Look at the trajectory in VMD and check that the protein, the oligosaccharide and the ions stay where they should:</p>
+
+<pre style="color: white; background-color: black;">
+vmd -parm7 amylase.prmtop -dcd EM-pos-1.dcd
+</pre>
 
 <br/>

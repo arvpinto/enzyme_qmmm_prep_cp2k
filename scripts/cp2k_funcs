@@ -1,0 +1,74 @@
+#!/usr/bin/env bash
+# cp2k_funcs - bash functions to inspect CP2K outputs
+#
+# Load them in the current shell with:   source cp2k_funcs
+# and list them with:                     cp2k_help
+#
+#   cp2k_opt      FILE.out              convergence criteria of every GEO_OPT step
+#   cp2k_ener     FILE.out [FILE2.out]  MD energies, temperatures and timings per step -> FILE.ener.csv
+#   cp2k_eqmmm    FILE.out [FILE2.out]  QM energy and QM temperature per MD step -> FILE.eqmmm.csv
+#   cp2k_colvar   FILE.metadynLog [-a]  time (fs) and CV value(s) in angstrom (-a: keep atomic units)
+#   cp2k_qmidx    FILE.inp|FILE.inc     VMD selection ("serial ...") of the QM atoms of the &QM_KIND sections
+#   cp2k_mulliken FILE.out              Mulliken charges per atom, needs &DFT/&PRINT/&MULLIKEN -> FILE.mulliken.csv
+#   cp2k_ui       FILE.out              CV per step of an umbrella integration run -> FILE.xvg
+
+cp2k_help () {
+    sed -n '2,15p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
+}
+
+cp2k_opt () {
+    [[ -f "$1" ]] || { echo "Usage: cp2k_opt FILE.out" >&2; return 1; }
+    OPT_STATUS=$(grep -A20 ' Informations at step ' $1 | egrep ' Informations at step = | = *YES| = *NO')
+    echo -e "$OPT_STATUS"
+}
+
+cp2k_ui () {
+    [[ -f "$1" ]] || { echo "Usage: cp2k_ui FILE.out [FILE2.out ...]" >&2; return 1; }
+    DT=$(grep -m1 -ia 'TIMESTEP' $1 | tr -s ' ' | cut -d' ' -f3)
+    grep 'COLVAR::' ${*} | grep -oE '[-]*[0-9]+\.[0-9]+' | nl | awk '{ print $1 "\t" $2*0.52918 }' > $(basename $1 .out).xvg
+    #egrep -ia 'Time \[fs\]|COLVAR::' ${*} | grep -oE '\S+\s*$' | xargs -n2 | awk '{ print $2 "\t" $1*0.52918}' | sort -gk1 -u > $(basename $1 .out).xvg
+    #egrep 'TIME \[fs\]|COLVAR::' ${*} | egrep -oE 'TIME.+|COLVAR.+' | grep -oE [-,0-9]+\.[0-9]+ | xargs -n2 | awk '{ print $2 "\t" $1*0.52918}' | sort -gk1 -u > $(basename $1 .out).xvg
+ }
+
+cp2k_mulliken () {
+    [[ -f "$1" ]] || { echo "Usage: cp2k_mulliken FILE.out" >&2; return 1; }
+    NATOM=$(sed -n '/TOTAL NUMBERS AND MAXIMUM NUMBERS/,/SCF PARAMETERS/p' $1 | grep -m1 'Atoms:' | cut -d':' -f2)
+    MULLIKEN=$(sed -n '/Mulliken Population Analysis/,/# Total charge/p' ${*} | cut -c42-80 | grep -oE '^\s*[-]*[0-9]+.[0-9]+$' | xargs printf '%10.2f' | xargs -n $NATOM)
+    seq 1 $NATOM | xargs > ${1/\.out/.mulliken.csv}
+    echo "$MULLIKEN" >> ${1/\.out/.mulliken.csv}
+}
+
+cp2k_eqmmm () {
+    [[ -f "$1" ]] || { echo "Usage: cp2k_eqmmm FILE.out [FILE2.out ...]" >&2; return 1; }
+    echo "#  Time[fs]  QM_Pot.[a.u.]  QM_Kin.[a.u.]  QM_AveKin.[a.u.]  QM_Temp[K]  QM_AveTemp[K] " > ${1/\.out/.eqmmm.csv}
+    egrep --no-filename -i 'Total energy: |Time \[fs\] |QM.*\[.*\] ' ${*} | cut -d':' -f2 | grep -B3 -i 'MD| QM temp' | grep -oE [-,]*[0-9].* | xargs -n6 | awk '{print $2" "$1" "$3" "$4" "$5" "$6}' >> ${1/\.out/.eqmmm.csv}
+}
+
+cp2k_qmidx () {
+    [[ -f "$1" ]] || { echo "Usage: cp2k_qmidx forceeval_qmmm.cp2k.inc" >&2; return 1; }
+    QM_IDX=( $(sed -n '/&QM_KIND/,/&LINK/p' $1 | grep -v '^\s*!' | grep -oE 'MM_INDEX.*|^\s*[0-9][0-9 \\]*$' | sed 's/MM_INDEX//; s/\\//g') )
+    #QM_IDX=$(grep -A1 QM_KIND $1 | grep MM_INDEX | grep -oE [0-9]+ | xargs)
+    echo -E "serial ${QM_IDX[@]}"
+}
+
+cp2k_ener () {
+    [[ -f "$1" ]] || { echo "Usage: cp2k_ener FILE.out [FILE2.out ...]" >&2; return 1; }
+    echo ${*}
+    COLS=($(sed -n '/MD| Step number/,/MD| \*\*\*/{p;/MD| \*\*\*/q}' $1 |
+    egrep -i 'MD\| Time \[|MD\| Conserved|MD\| .*Energy|MD\| .*Temperature|MD\| Pressure|MD\| CPU time' |
+        grep -oE '[A-Z]+.*]' | cut -d'|' -f2 | sed 's/ /./2g'))
+    echo "#${COLS[@]}" > ${1/\.out/.ener.csv}
+    egrep -i 'MD\| Time \[|MD\| Conserved|MD\| .*Energy|MD\| .*Temperature|MD\| Pressure|MD\| CPU time' ${*} |
+        grep -oE '\]\s*\S+' | tr -s ' ' | cut -d' ' -f2 | xargs -n ${#COLS[@]}\
+        >> ${1/\.out/.ener.csv}
+}
+
+cp2k_colvar () {
+    # metadynLog columns: time [fs], then the CVs in atomic units (bohr for distances), then other terms
+    [[ -f "$1" ]] || { echo "Usage: cp2k_colvar FILE.metadynLog [-a]  (-a: keep atomic units)" >&2; return 1; }
+    local FAC=0.529177210903
+    [[ "$2" == "-a" ]] && FAC=1.0
+    local UNIT=angstrom
+    [[ "$FAC" == "1.0" ]] && UNIT=a.u.
+    awk -v f=$FAC -v u=$UNIT 'BEGIN{printf "#%11s %12s\n", "time[fs]", "CV[" u "]"} !/^#/ && NF>1 {printf "%12.3f %12.5f\n", $1, $2*f}' $1
+}

@@ -1,75 +1,31 @@
 <br>
-<h2> <p align="center"> <b>II - MD equilibration and choice of the starting structure</b> </p></h2>
+<h2> <p align="center"> <b>II - Selection of the QM region</b> </p></h2>
 
 <br/>
 
 <pre style="color: white; background-color: black;">
-min1 -> min2 -> heat (NVT) -> npt -> prod  ->  cpptraj (analysis, clustering, imaging)  ->  snapshot.rst7
+amylase.prmtop + frame_xray.inpcrd  ->  QM region picked in PyMOL (hl_65atoms.mol2)  ->  mol2_qmsel.sh  ->  VMD / PyMOL / Amber selections
 </pre>
 
 ---
 
 <br/>
 
-<p align="justify">A QM/MM study should start from a structure that is equilibrated with the force field in the ensemble of interest, and that is representative of the reactive state you want to study. In this section we run a standard Amber protocol, check the trajectory and extract a snapshot with the solute imaged in the center of the box, in the format and with the periodic cell that CP2K expects.</p>
+<p align="justify">The QM region decides which chemistry the model can describe, how the environment polarizes the reacting atoms and how much each MD step costs. There is no universal recipe, but there are well established rules.</p>
 
 <br/>
 
-<h3> <p align="center"><b> Equilibration protocol </b></p> </h3>
+<h3> <p align="center"><b> Guidelines </b></p> </h3>
 
 <br/>
 
-| Stage | Input | Ensemble | Length | Restraints on solute heavy atoms |
-| :--- | :--- | :--- | :--- | :--- |
-| Minimization 1 | min1.in | - | 5000 steps | 10 kcal mol<sup>-1</sup> &Aring;<sup>-2</sup> |
-| Minimization 2 | min2.in | - | 10000 steps | none |
-| Heating 0 -> 300 K | heat.in | NVT, Langevin | 100 ps | 5 kcal mol<sup>-1</sup> &Aring;<sup>-2</sup> |
-| Density equilibration | npt.in | NPT, Langevin + Monte Carlo barostat | 1 ns | 1 kcal mol<sup>-1</sup> &Aring;<sup>-2</sup> |
-| Production | prod.in | NPT | 100 ns | none |
+- <p align="justify">Include every atom that forms or breaks a bond or changes its protonation state along the reaction, together with the groups conjugated with them (carboxylates, amides, aromatic rings), and the groups that interact strongly with the reacting atoms and change along the reaction (hydrogen bond donors to a developing charge, metal ions and their ligands, catalytic waters).</p>
 
-<br/>
+- <p align="justify">Cut covalent bonds preferably between apolar sp<sup>3</sup> carbon atoms (C&alpha;-C&beta; or C&beta;-C&gamma; of side chains), never in a peptide bond, and keep the boundary at least three bonds away from any bond that changes during the reaction. Avoid a QM atom with two MM neighbours and an MM atom bonded to two QM atoms.</p>
 
-- <p align="justify">The solute is defined with the mask !(:WAT,Na+,Cl-) &amp; !@H=, i.e. all heavy atoms of the protein, ligand and anything else that is not water or bulk ions. The MD stages use a 2 fs time step with SHAKE on the bonds to hydrogen (ntc=2, ntf=2), a 10 &Aring; cutoff and PME.</p>
+- <p align="justify">Water molecules can be part of the QM region, but in QM/MM MD they can diffuse away. Check where they are at the end of each run.</p>
 
-<pre style="color: white; background-color: black;">
-Heating 0 -> 300 K in NVT, solute heavy atoms restrained
-&cntrl
-  imin=0, irest=0, ntx=1,
-  nstlim=50000, dt=0.002,
-  ntc=2, ntf=2, cut=10.0, ntb=1,
-  ntt=3, gamma_ln=2.0, ig=-1,
-  tempi=0.0, temp0=300.0,
-  nmropt=1,
-  ntr=1, restraint_wt=5.0,
-  restraintmask='!(:WAT,Na+,Cl-) & !@H=',
-  ntpr=500, ntwx=5000, ntwr=5000,
-  iwrap=1,
-/
-&wt type='TEMP0', istep1=0, istep2=40000, value1=0.0, value2=300.0, /
-&wt type='TEMP0', istep1=40001, istep2=50000, value1=300.0, value2=300.0, /
-&wt type='END', /
-</pre>
-
-<br/>
-
-- <p align="justify">The run_md.sh script runs the stages in sequence, passing the restart file of each stage to the next one and using it as reference for the positional restraints. Use pmemd.cuda when a GPU is available (the default), or pmemd.MPI/sander with -n for the number of MPI tasks. The -l option overrides the number of steps of every stage, which is useful to test the whole chain in a few minutes before submitting the real job.</p>
-
-<pre style="color: white; background-color: black;">
-./run_md.sh -h
-./run_md.sh -p complex.prmtop -c complex.rst7 -e pmemd.cuda
-./run_md.sh -p complex.prmtop -c complex.rst7 -e sander -s "min1 min2 heat npt" -l 300   # quick test
-</pre>
-
-<pre style="color: white; background-color: black;">
-[2026-10-25 10:55:06] running min1 with sander (input: complex.rst7)
-[2026-10-25 10:56:32] running min2 with sander (input: min1.rst7)
-[2026-10-25 10:58:04] running heat with sander (input: min2.rst7)
-...
-</pre>
-
-<br/>
-
-- <p align="justify">Production length depends on the question. For a QM/MM study of a reaction, you want enough sampling to know which conformations of the active site are populated and whether the reactive arrangement (the "near-attack conformation") is one of them. Running replicas with different initial velocities (ig=-1 gives a random seed) is usually more informative than a single long trajectory.</p>
+- <p align="justify">The cost of QM/MM MD grows quickly with the number of QM atoms (and with the size of the QM cell, Section III). A smaller, well chosen region with more sampling is often better than a larger one with less.</p>
 
 <br/>
 
@@ -77,31 +33,27 @@ Heating 0 -> 300 K in NVT, solute heavy atoms restrained
 
 <br/>
 
-<h3> <p align="center"><b> Checking the trajectory </b></p> </h3>
+<h3> <p align="center"><b> QM region of the example </b></p> </h3>
 
 <br/>
 
-- <p align="justify">Before choosing structures, check the energy, temperature, pressure and density of the equilibration stages (process_mdout.perl, or grep the mdout files), and then the stability of the protein and of the active site. analysis.cpptraj computes the backbone RMSD, the RMSD of the ligand without refitting (it measures how much it moves inside the protein) and the distances that define the catalytic triad and the position of the ligand relative to Ser195:</p>
+<p align="justify">The QM region of the example has 65 atoms (18 C, 18 O and 29 H) and a charge of -2:</p>
 
-<pre style="color: white; background-color: black;">
-parm complex.prmtop
-trajin prod.nc
-autoimage anchor :1-291
-rms bb_rmsd :1-290@CA,C,N first out rmsd.dat
-rms lig_rmsd :291&amp;!@H= first nofit out rmsd.dat
-distance d_ser_his  :206@OG  :44@NE2  out distances.dat
-distance d_his_asp  :44@ND1  :100@OD1,OD2 out distances.dat
-distance d_ser_lig  :206@OG  :291@O2  out distances.dat
-run
-</pre>
-
-<pre style="color: white; background-color: black;">
-cpptraj -i analysis.cpptraj
-</pre>
+| Residue | QM atoms | Role |
+| :--- | :--- | :--- |
+| ASP196 | side chain from C&beta; (6 atoms) | nucleophile (Asp197 in HPA), 3.1 &Aring; from C1 of the -1 sugar |
+| GLH232 | side chain from C&gamma; (7 atoms) | general acid: its HE2 is 2.0 &Aring; from the glycosidic O4 |
+| ASP299 | side chain from C&beta; (6 atoms) | binds the O2 and O3 hydroxyl groups of the -1 sugar |
+| 4GA499 | O4 only | glycosidic oxygen between the +2 and +1 sugars |
+| 4GA500 | whole residue (21 atoms) | +1 sugar (leaving group), its O4 is the glycosidic oxygen of the scissile bond |
+| 4GA501 | whole residue (21 atoms) | -1 sugar, its C1 is attacked by Asp196 |
+| WAT511 | whole molecule | water bridging Glu232 and Asp299 in the active site |
 
 <br/>
 
-- <p align="justify">Choose the distances that matter for your mechanism: the nucleophile-electrophile distance and the angle of attack, the proton transfer distances, the coordination of metal ions, the hydrogen bonds of the oxyanion hole, etc. The histograms of these distances tell you how often the active site is ready for the reaction.</p>
+- <p align="justify">Five bonds are cut: C&alpha;-C&beta; of Asp196 and Asp299, C&beta;-C&gamma; of Glu232, and two glycosidic C-O bonds on both sides of the QM sugars, C4(499)-O4(499) and O4(501)-C1(502). The C-O cuts are polar, which the guidelines advise against, but they are a common compromise for oligosaccharides: the alternative is to include the neighbouring glucose units whole. Both are at least four bonds away from the reacting atoms (C1 of 501 and O4 of 500), and each gives a capping hydrogen on an oxygen atom, which turns the boundary oxygen into a hydroxyl group.</p>
+
+- <p align="justify">The charge of the region (-2) comes from the two aspartates: Glu232 is neutral and the sugars and the water have no net charge. This is the &DFT CHARGE of the QM/MM inputs. With GTH pseudopotentials the region and its five capping hydrogens have 216 valence electrons, an even number, consistent with the closed-shell singlet (MULTIPLICITY 1) of the inputs.</p>
 
 <br/>
 
@@ -109,60 +61,62 @@ cpptraj -i analysis.cpptraj
 
 <br/>
 
-<h3> <p align="center"><b> Selecting and imaging a snapshot </b></p> </h3>
+<h3> <p align="center"><b> From a PyMOL selection to VMD and Amber </b></p> </h3>
 
 <br/>
 
-- <p align="justify">A common choice is the representative structure of the most populated cluster of the active site conformations (cluster.cpptraj), or several structures from different clusters if you want to estimate the conformational dependence of the barrier, or a frame that satisfies geometric criteria for the reaction.</p>
+<p align="justify">Picking atoms by clicking is easiest in PyMOL. Write a PDB file from the topology and the coordinates with ambpdb (so that the residues keep the sequential numbering of the topology), open it in PyMOL, select the QM atoms and save the selection as MOL2:</p>
 
 <pre style="color: white; background-color: black;">
-parm complex.prmtop
-trajin prod.nc 1 last 10
-autoimage anchor :1-291
-cluster c1 kmeans clusters 5 randompoint maxit 500 \
-    rms :44,100,206,291&amp;!@H= \
-    out cluster_vs_time.dat summary cluster_summary.dat info cluster_info.dat \
-    repout cluster_rep repfmt restart
-run
-</pre>
-
-<pre style="color: white; background-color: black;">
-cat cluster_summary.dat
-#Cluster   Frames     Frac  AvgDist    Stdev Centroid AvgCDist
-       0        4    0.400    0.118    0.026        6    0.173
-       ...
+ambpdb -p amylase.prmtop -c frame_xray.inpcrd > amylase.pdb
+pymol amylase.pdb
+PyMOL> save hl_65atoms.mol2, sele
 </pre>
 
 <br/>
 
-- <p align="justify">Two details are important for CP2K. First, the solute has to be whole and in the center of the box: autoimage puts the anchor molecule (the protein and the ligand, :1-291) in the center and wraps the solvent around it, so that the QM region is not split by the periodic boundary. Second, do not superimpose the frames on a reference before writing them (a "rms ... first" action without nofit): the rotation would misalign the system with the periodic box. The rms metric of the cluster command superimposes the frames internally and leaves the coordinates untouched.</p>
-
-- <p align="justify">When you already know which frame you want, extract_snapshot.cpptraj writes it directly. The rst7 format keeps the box dimensions in the last line, and they are the ones to use in the &CELL section of CP2K (in NPT, the box of each frame is different from the initial one):</p>
+<p align="justify">mol2_qmsel.sh reads the MOL2 file (the residue labels, such as ASP196, are RESNAME+RESID) and writes the same selection in the syntax of VMD, PyMOL and Amber masks, residue by residue. With -o the selections are also saved to files:</p>
 
 <pre style="color: white; background-color: black;">
-parm complex.prmtop
-trajin prod.nc 2500 2500
-autoimage anchor :1-291
-trajout snapshot.rst7 restart
-trajout snapshot.pdb pdb
-run
+./mol2_qmsel.sh -o qm_sel hl_65atoms.mol2
 </pre>
 
 <pre style="color: white; background-color: black;">
-tail -n 1 snapshot.rst7
-  77.6793442  82.5830154  81.2552414  90.0000000  90.0000000  90.0000000
+RESIDUE LIST (65 atoms):
+ASP196
+GLH232
+ASP299
+4GA499
+4GA500
+4GA501
+WAT511
+
+VMD selection:
+(name CB CG OD1 OD2 HB2 HB3 and resname ASP and resid 196) or (name CG CD OE1 OE2 HG2 HG3 HE2 and resname GLH and resid 232) or (name CB CG OD1 OD2 HB2 HB3 and resname ASP and resid 299) or (name O4 and resname 4GA and resid 499) or (name C1 C2 O2 C3 O3 C4 O4 C5 O5 C6 O6 H1 H2 H3 H4 H5 H2O H3O H61 H62 H6O and resname 4GA and resid 500) or (name C1 C2 O2 C3 O3 C4 O4 C5 O5 C6 O6 H1 H2 H3 H4 H5 H2O H3O H61 H62 H6O and resname 4GA and resid 501) or (name O H1 H2 and resname WAT and resid 511)
+
+PYMOL selection:
+(name CB+CG+OD1+OD2+HB2+HB3 &amp; resn ASP &amp; resi 196) | (name CG+CD+OE1+OE2+HG2+HG3+HE2 &amp; resn GLH &amp; resi 232) | ...
+
+AMBER MASK selection:
+(@CB,CG,OD1,OD2,HB2,HB3&amp;:ASP&amp;:196)|(@CG,CD,OE1,OE2,HG2,HG3,HE2&amp;:GLH&amp;:232)|(@CB,CG,OD1,OD2,HB2,HB3&amp;:ASP&amp;:299)|...
+
+Selections written to qm_sel.vmd, qm_sel.pml and qm_sel.mask
 </pre>
 
 <br/>
 
-- <p align="justify">From now on we call the selected snapshot AMBER.rst7, the name used in the CP2K inputs of this tutorial and of the TS tutorial. The matching topology, AMBER.prmtop, is written in Section IV from complex.prmtop, after renaming the atom types that CP2K cannot handle. Open the snapshot with the topology in VMD and check that the protein and the ligand are whole and centered.</p>
+- <p align="justify">The VMD selection (qm_sel.vmd) is the input of the next section. The Amber mask works in ParmEd and cpptraj, e.g. to list the atoms (printDetails) or to sum their MM charges, which is not an integer, as discussed in Section IV:</p>
 
 <pre style="color: white; background-color: black;">
-cp cluster_rep.c0.rst7 AMBER.rst7
+echo "netCharge $(cat qm_sel.mask)" | parmed -n amylase.prmtop
+</pre>
+
+<pre style="color: white; background-color: black;">
+> The net charge of (@CB,CG,OD1,OD2,HB2,HB3&amp;:ASP&amp;:196)|...|(@O,H1,H2&amp;:WAT&amp;:511) is -2.2063
 </pre>
 
 <br/>
 
-<p align="justify">The input files of this section are in <a href="AMBER_INPUTS.zip">AMBER_INPUTS.zip</a>.</p>
+- <p align="justify">Whatever the tool, write the final selection down together with the topology it applies to: the atom numbers in the CP2K inputs are only meaningful for that topology.</p>
 
 <br/>

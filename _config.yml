@@ -1,5 +1,5 @@
 title: Tutorial for the Preparation of Enzyme QM/MM Systems for CP2K
-description: From a PDB structure to a validated QM/MM model of an enzyme-ligand complex (Amber force field, CP2K)
+description: From a tleap topology to a steered QM/MM MD run in which bonds form and break (Amber/GLYCAM force fields, CP2K)
 author: Alexandre V. Pinto
 lang: en
 image: /assets/img/CP2K_PREP_TUTORIAL.png
@@ -8,7 +8,7 @@ image: /assets/img/CP2K_PREP_TUTORIAL.png
 topic: QM/MM
 topic_color: "#ff5257"
 series: Part 1 of Enzyme QM/MM with CP2K
-tools: [AmberTools, parmed, VMD, CP2K]
+tools: [AmberTools, ParmEd, PyMOL, VMD, CP2K]
 next_tutorial:
   title: Static QM/MM (TS searches with CI-NEB and the dimer method)
   url: https://arvpinto.github.io/enzyme_neb_cp2k/
@@ -22,20 +22,26 @@ sections:
     title: System setup
     url: /enzyme_qmmm_prep_I.html
   - num: II
-    title: MD equilibration
+    title: QM region
     url: /enzyme_qmmm_prep_II.html
   - num: III
-    title: QM region
+    title: QM/MM include files
     url: /enzyme_qmmm_prep_III.html
   - num: IV
-    title: QM/MM input
+    title: Charge correction
     url: /enzyme_qmmm_prep_IV.html
   - num: V
-    title: Charge correction
+    title: MM minimization
     url: /enzyme_qmmm_prep_V.html
   - num: VI
-    title: CP2K tests
+    title: QM/MM minimization
     url: /enzyme_qmmm_prep_VI.html
+  - num: VII
+    title: QM/MM MD
+    url: /enzyme_qmmm_prep_VII.html
+  - num: VIII
+    title: Steered QM/MM MD
+    url: /enzyme_qmmm_prep_VIII.html
 
 # Main site (CompBioChem Tutorials) and this repository.
 home_url: https://arvpinto.github.io/

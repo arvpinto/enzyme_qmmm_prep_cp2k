@@ -1,67 +1,37 @@
 <br>
-<h2> <p align="center"> <b>I - Setup of the enzyme-ligand complex with AmberTools</b> </p></h2>
+<h2> <p align="center"> <b>I - System setup with tleap and atom types for CP2K</b> </p></h2>
 
 <br/>
 
 <pre style="color: white; background-color: black;">
-PDB structure  ->  pdb4amber / PROPKA  ->  antechamber / parmchk2  ->  tleap  ->  complex.prmtop + complex.rst7
+frame_xray.pdb  ->  tleap (ff99SB + GLYCAM_06h)  ->  amylase_leap.prmtop + frame_xray.inpcrd  ->  prmtop_fix_types.py  ->  amylase.prmtop
 </pre>
 
 ---
 
 <br/>
 
-<p align="justify">In this section we build the Amber topology (prmtop) and coordinates (rst7) of the solvated enzyme-ligand complex. Every decision taken here (protonation states, ligand charges, ions, box) is carried into the QM/MM model, so it pays off to make them carefully and to write them down.</p>
+<p align="justify">In this section we build the Amber topology (prmtop) and coordinates (inpcrd) of the solvated complex, and then check that CP2K will read the topology as Amber does. The second step is short, but skipping it can give wrong MM electrostatics without any error message.</p>
 
 <br/>
 
-<h3> <p align="center"><b> Cleaning the PDB structure </b></p> </h3>
+<h3> <p align="center"><b> The starting structure </b></p> </h3>
 
 <br/>
 
-- <p align="justify">Start by inspecting the structure in VMD and the header of the PDB file: missing residues and atoms (REMARK 465 and 470), alternate conformations, chain breaks, crystallization additives, metal ions and cofactors. Keep the crystallographic waters, especially those in the active site, and remove buffer molecules and other additives that are not part of your model. Missing loops have to be modelled (e.g. with MODELLER) before going further.</p>
+- <p align="justify">frame_xray.pdb (in <a href="AMBER_INPUTS.zip">AMBER_INPUTS.zip</a>) is a frame of a classical MD simulation of the complex, so it already has everything tleap needs: hydrogen atoms with Amber names, water molecules and ions, and residue names that encode the protonation states and the carbohydrate:</p>
 
-- <p align="justify">Insertion codes (residues 36A, 60B, 184A, ...) are common in proteases and antibodies, which follow the numbering of a reference protein. pdb4amber handles them poorly: on the thrombin structure it inserted 46 TER records at residues with insertion codes, which would break the chain in tleap. We therefore renumber the residues sequentially first, with <a href="http://www.bonvinlab.org/pdb-tools/" target="_blank">pdb-tools</a> (pip install pdb-tools), blank the insertion code column and keep a map between both numberings:</p>
-
-<pre style="color: white; background-color: black;">
-grep -E "^(ATOM|HETATM|TER|END)" thrombin_2ZFF.pdb | pdb_reres -1 | \
-    sed -E 's/^((ATOM  |HETATM).{20})./\1 /' > thrombin_seq.pdb
-
-paste &lt;(awk '/^ATOM|^HETATM/{print substr($0,18,10)}' thrombin_2ZFF.pdb | uniq) \
-      &lt;(awk '/^ATOM|^HETATM/{print substr($0,18,10)}' thrombin_seq.pdb | uniq) > residue_map.txt
-
-grep -E "HIS H  57 |ASP H 102 |GLY H 193 |SER H 195 " residue_map.txt
-HIS H  57   HIS H  44
-ASP H 102   ASP H 100
-GLY H 193   GLY H 204
-SER H 195   SER H 206
-</pre>
+| Residue names | Meaning |
+| :--- | :--- |
+| GLH232 | Glu232 (Glu233 in HPA numbering) neutral, protonated at OE2: the general acid of the glycosylation step |
+| HIE | histidines protonated at N&epsilon;2 |
+| CYX | cysteines in disulfide bonds (27-85, 69-114, 140-159, 377-383, 449-461) |
+| ROH 498, 4GA 499-502, 0GA 503 | GLYCAM maltopentaose: ROH caps the reducing end, 4GA is an &alpha;-D-glucopyranose linked at O4 to the next unit, 0GA the non-reducing end |
+| CA2, Cl-, Na+, WAT | Ca<sup>2+</sup>, Cl<sup>-</sup>, Na<sup>+</sup> and TIP3P water |
 
 <br/>
 
-- <p align="justify">pdb4amber renames residues to their Amber names, removes the hydrogen atoms (they are added back by tleap with the correct names), detects disulfide bonds (CYS -> CYX) and writes TER records between chains.</p>
-
-<pre style="color: white; background-color: black;">
-pdb4amber -i thrombin_seq.pdb -o protein_noH.pdb --nohyd
-</pre>
-
-<pre style="color: white; background-color: black;">
----------- Missing heavy atom(s)
-
-None
-
-cat protein_noH_sslink
-29 45
-120 265
-174 188
-202 232
-</pre>
-
-<br/>
-
-- <p align="justify">protein_noH_sslink lists the disulfide bonds (pairs of residue numbers), protein_noH_renum.txt maps the input numbering to the output one and protein_noH_nonprot.pdb holds everything that is not protein. Keep residue_map.txt at hand: the catalytic residues of thrombin are His57, Asp102 and Ser195 in the literature, but His44, Asp100 and Ser206 in the topology.</p>
-
-- <p align="justify">Check the TER records (here, 2: one per chain) and every chain break reported. The version of pdb4amber used here prints many "gap of ... A between residues i and i+2" lines for this file that are not real gaps (all consecutive C-N distances are about 1.33 &Aring;), so always confirm a reported gap in VMD. If the structure has a real gap that you do not want to model, cap both ends (ACE and NME) instead of letting tleap join two distant residues with a long peptide bond. In the example, the two chains of thrombin were already capped.</p>
+- <p align="justify">If you start from a crystal structure instead, the usual preparation applies before this point: missing atoms and loops, protonation states (PROPKA, H++ and inspection of the hydrogen bond network, in particular of the catalytic residues), the GLYCAM residue names of the carbohydrate (the <a href="https://glycam.org/" target="_blank">GLYCAM web tools</a> build and name oligosaccharides), solvation, neutralization and a classical MD equilibration. The protonation state of the catalytic residues has to match the mechanism you want to study: here the acid/base Glu232 must carry the proton that it will transfer, and the nucleophile Asp196 must be deprotonated.</p>
 
 <br/>
 
@@ -69,156 +39,132 @@ cat protein_noH_sslink
 
 <br/>
 
-<h3> <p align="center"><b> Protonation states </b></p> </h3>
+<h3> <p align="center"><b> Building the topology with tleap </b></p> </h3>
 
 <br/>
-
-- <p align="justify">Estimate the pKa values of the titratable residues with PROPKA (or H++, PDB2PQR) at the pH you want to simulate:</p>
 
 <pre style="color: white; background-color: black;">
-propka3 thrombin_2ZFF.pdb
-</pre>
+# leap_amyl.in
+source oldff/leaprc.ff99SB
+source oldff/leaprc.GLYCAM_06h
 
-<pre style="color: white; background-color: black;">
-SUMMARY OF THIS PREDICTION
-       Group      pKa  model-pKa
-   ...
-   ASP 102 H     3.61       3.80
-   ASP 189 H     6.92       3.80
-   ...
-   HIS  57 H     6.94       6.50
-   ...
-</pre>
+loadamberparams frcmod.ionsff99_tip3p
 
-<br/>
+amyl = loadpdb frame_xray.pdb
 
-- <p align="justify">The predicted values are a starting point, not the answer. Inspect the hydrogen bond network of every residue with a pKa close to the working pH and of every residue involved in catalysis. For the catalytic triad of a serine protease, His57 donates a hydrogen bond from N&delta;1 to Asp102 and accepts one from Ser195 O&gamma; at N&epsilon;2, so it has to be neutral and protonated at N&delta;1 (HID). Asp189, at the bottom of the S1 pocket, has an elevated pKa (6.9) but stays deprotonated at pH 7. The protonation states of the residues that take part in the reaction must be consistent with the mechanism you want to study (for some mechanisms you will need to build more than one model).</p>
+bond amyl.27.SG amyl.85.SG
+bond amyl.69.SG amyl.114.SG
+bond amyl.140.SG amyl.159.SG
+bond amyl.377.SG amyl.383.SG
+bond amyl.449.SG amyl.461.SG
 
-- <p align="justify">The protonation states are set by renaming the residues in the PDB file: HID, HIE or HIP for histidines, ASH for neutral aspartate, GLH for neutral glutamate, LYN for neutral lysine and CYX for cysteines in disulfide bonds (already done by pdb4amber). The default HIS is read by tleap as HIE.</p>
+alignaxes amyl
 
-<pre style="color: white; background-color: black;">
-sed -e 's/HIS H  44/HID H  44/' \
-    -e 's/HIS H  67/HIE H  67/' -e 's/HIS H  88/HIE H  88/' \
-    -e 's/HIS H 117/HIE H 117/' -e 's/HIS H 243/HIE H 243/' protein_noH.pdb | grep -v CONECT > protein_amber.pdb
-</pre>
+setBox amyl vdw {0.0 0.0 0.0}
 
-<br/>
+saveamberparm amyl amylase_leap.prmtop frame_xray.inpcrd
 
-- <p align="justify">Note the grep -v CONECT: pdb4amber writes CONECT records for the disulfide bonds and tleap reads them. If you also define the disulfides with the bond command, as we do below, tleap aborts when saving the topology with "1-4: cannot add bond ... This may be caused by duplicate bond specifications". Use one of the two, not both.</p>
-
-<br/>
-
----
-
-<br/>
-
-<h3> <p align="center"><b> Ligand parameters </b></p> </h3>
-
-<br/>
-
-- <p align="justify">The ligand needs all its hydrogen atoms and the right protonation state before the charges are derived. The D-Phe-Pro-benzylamide inhibitor has a primary amine that is protonated at pH 7 (net charge +1). Here we use GAFF2 atom types and AM1-BCC charges:</p>
-
-<pre style="color: white; background-color: black;">
-antechamber -i lig_5.sdf -fi mdl -o LIG.mol2 -fo mol2 -c bcc -nc 1 -at gaff2 -rn LIG -pf y
-</pre>
-
-<br/>
-
-- <p align="justify">antechamber writes the charges with 6 decimals and the rounding often leaves a small residual. Check the sum before going further, since a non-integer total charge is carried into every Ewald sum of the MM and QM/MM calculations:</p>
-
-<pre style="color: white; background-color: black;">
-awk '/@&lt;TRIPOS&gt;ATOM/{f=1;next}/@&lt;TRIPOS&gt;BOND/{f=0}f{s+=$9}END{printf "%.6f\n",s}' LIG.mol2
-0.997001
-</pre>
-
-<pre style="color: white; background-color: black;">
-python3 mol2_charge_fix.py -i LIG.mol2 -o LIG_fixed.mol2 -c 1
-Atoms               : 52
-Original charge sum : +0.997001
-Target charge       : +1
-Corrected sum       : +1.000000
-Atoms modified      : 52
-Written             : LIG_fixed.mol2
-</pre>
-
-<br/>
-
-- <p align="justify">mol2_charge_fix.py spreads the residual over the atoms in steps of 10<sup>-6</sup> e (option --method largest puts it on the atom with the largest |q| instead). Then generate the missing force-field parameters and check the penalty scores in the frcmod file (high penalties deserve a closer look and, possibly, a reparameterization):</p>
-
-<pre style="color: white; background-color: black;">
-parmchk2 -i LIG_fixed.mol2 -f mol2 -o LIG.frcmod -s gaff2
-</pre>
-
-<br/>
-
-- <p align="justify">For production work, RESP charges (HF/6-31G* on optimized geometries, consistent with the ff14SB charge model) are preferred to AM1-BCC. Metal ions bound to the protein need a dedicated parameterization (e.g. MCPB.py), and covalently bound ligands have to be built as non-standard residues. Remember that the QM region removes the MM description of whatever it contains, but the MM parameters of the ligand still drive the MD of Section II and the environment of every QM/MM calculation.</p>
-
-<br/>
-
----
-
-<br/>
-
-<h3> <p align="center"><b> Building the system with tleap </b></p> </h3>
-
-<br/>
-
-- <p align="justify">We load the ff14SB protein force field, GAFF2 and the TIP3P water model with its Joung-Cheatham/Li-Merz ion parameters, combine protein and ligand, define the disulfide bonds, solvate the complex in an orthorhombic box with 12 &Aring; of water around the solute, neutralize it and add NaCl to about 0.15 M. CP2K reads the orthorhombic cell directly into &CELL, which keeps the QM/MM setup simple.</p>
-
-<pre style="color: white; background-color: black;">
-# tleap.in
-source leaprc.protein.ff14SB
-source leaprc.gaff2
-source leaprc.water.tip3p
-
-loadamberparams LIG.frcmod
-LIG = loadmol2 LIG_fixed.mol2
-prot = loadpdb protein_amber.pdb
-
-bond prot.29.SG prot.45.SG
-bond prot.120.SG prot.265.SG
-bond prot.174.SG prot.188.SG
-bond prot.202.SG prot.232.SG
-
-complex = combine {prot LIG}
-check complex
-charge complex
-
-solvatebox complex TIP3PBOX 12.0
-addions complex Cl- 0
-addionsrand complex Na+ NIONS Cl- NIONS
-charge complex
-
-saveamberparm complex complex.prmtop complex.rst7
-savepdb complex complex.pdb
 quit
 </pre>
 
-<br/>
-
-- <p align="justify">The number of ion pairs for 0.15 M can be estimated from the number of water molecules added by solvatebox (run tleap once without the addions lines and read the "Added ... residues" line), N = 0.15 x N<sub>water</sub> / 55.5:</p>
-
 <pre style="color: white; background-color: black;">
-NWAT=$(grep "Added" tleap_dry.log | awk '{print $2}')
-NIONS=$(python3 -c "print(round(0.15*$NWAT/55.5))")
-sed "s/NIONS/$NIONS/g" tleap.in > tleap_run.in
-tleap -f tleap_run.in > tleap.log
-</pre>
-
-<pre style="color: white; background-color: black;">
-Total unperturbed charge:   5.000000
-...
-  Added 12638 residues.
-...
-Total unperturbed charge:  -0.000000
-Exiting LEaP: Errors = 0; Warnings = 2; Notes = 0.
+tleap -f leap_amyl.in > leap_amyl.log
 </pre>
 
 <br/>
 
-- <p align="justify">Read the whole tleap.log. The two warnings above are the expected non-zero charge of the unit before neutralization. Look for missing parameters, atoms added that should have been in the PDB, close contacts and unexpected bonds. Open complex.pdb in VMD and confirm the protonation states, the disulfides and the position of the ligand.</p>
+- <p align="justify">The protein is described with ff99SB and the carbohydrate with GLYCAM_06h, with the TIP3P water model and its ion parameters. These are the force fields of the MD simulation that produced the frame: always keep the force field of the equilibration. For a new system, ff14SB or ff19SB and GLYCAM_06j are the current choices.</p>
 
-- <p align="justify">tleap writes the solvent at the end of the topology, after the ions, so the crystallographic waters do not keep their position in the residue list. In the example the ligand is residue 291 and the ions follow it. From now on, take every residue and atom number from complex.pdb or from the prmtop, never from the original PDB file.</p>
+- <p align="justify">The disulfide bonds are defined with the bond command (the residues are already called CYX in the PDB). Do not also keep CONECT records for them in the PDB file, or tleap will add each bond twice.</p>
+
+- <p align="justify">alignaxes rotates the system so that its principal axes lie along x, y and z, and setBox vdw sets an orthorhombic box that encloses all atoms (here 88.589 x 102.293 x 90.200 &Aring;). This is convenient for a frame without box information, but if the frame comes from a periodic simulation the original box is a better choice: rotating the frame or changing the box breaks the continuity of the water across the periodic boundary, and the first minimization has to repair it. In that case remove alignaxes and set the box of the frame with set amyl box {a b c}.</p>
+
+- <p align="justify">Read the whole leap_amyl.log: missing parameters, atoms added that should have been in the PDB, unexpected bonds and the total charge (0 here). Then open the topology and the coordinates in VMD and check the protonation states, the disulfides and the position of the oligosaccharide.</p>
+
+<pre style="color: white; background-color: black;">
+vmd -parm7 amylase_leap.prmtop -rst7 frame_xray.inpcrd
+</pre>
+
+<br/>
+
+- <p align="justify">From now on, take every residue and atom number from the topology (VMD resid and serial, or ParmEd), never from an original crystal structure. In VMD, resid follows the sequential residue numbering of the prmtop, serial is the 1-based atom number used by CP2K, and index is serial - 1.</p>
+
+<br/>
+
+---
+
+<br/>
+
+<h3> <p align="center"><b> Atom types that CP2K can read </b></p> </h3>
+
+<br/>
+
+<p align="justify">CP2K reads the Amber topology directly (PARMTYPE AMBER and CONN_FILE_FORMAT AMBER), but it does not use the atom types as Amber does. It creates one atomic kind per atom type and charge, and only the names of these kinds tell the atoms apart:</p>
+
+- <p align="justify">the type names are converted to upper case, so GLYCAM Ho/Oh (sugar hydroxyl) and ff99SB HO/OH (Ser, Thr, Tyr and GLH hydroxyl) fall into the same group of kinds;</p>
+
+- <p align="justify">when a type has several charges, its kinds are named by appending a counter: the amide hydrogens (type H, on the backbone and on the Asn, Gln and Arg side chains, with 12 different charges here) become H1, H2, ..., H12. The topology also has types called H1, H2 and H5 (aliphatic H next to an electronegative atom in the protein and in GLYCAM, the anomeric H of GLYCAM and the H on C&epsilon;1 of His), whose kinds are H11, H12, ..., H131, H2 and H5. Atoms of two different types then share one kind, with a single charge. Released versions of CP2K (up to 2026.2) do not stop or warn: the electrostatics are simply wrong. This was fixed in the development version of CP2K in October 2026 (<a href="https://github.com/cp2k/cp2k/pull/6191" target="_blank">cp2k/cp2k#6191</a>);</p>
+
+- <p align="justify">the element of each kind is guessed from its name, with the trailing digits removed, using built-in lists of Amber, CHARMM and GROMOS types and the periodic table. The calcium type of the old ion parameters, C0, becomes carbon, and Na+ and Cl- are not recognized at all (the inputs of this tutorial give them a &KIND section with their ELEMENT).</p>
+
+<br/>
+
+<p align="justify">prmtop_fix_types.py reproduces the kind names that CP2K builds, reports these problems and writes a topology in which the offending types are renamed. The new names are taken from the type lists that CP2K already knows, so that the element is guessed correctly and no extra &KIND sections are needed. Only the labels in AMBER_ATOM_TYPE change: the parameters are indexed by number in the prmtop, so Amber gives exactly the same energy with both files.</p>
+
+<pre style="color: white; background-color: black;">
+python3 prmtop_fix_types.py -p amylase_leap.prmtop -o amylase.prmtop
+</pre>
+
+<pre style="color: white; background-color: black;">
+prmtop_fix_types.py v2.0
+amylase_leap.prmtop: 38 atom types, 259 CP2K kinds
+  type   element    atoms  charges  CP2K kinds
+  N3     N             23        2  N31 ... N32
+  H      H            818       12  H1 ... H12
+  CT     C           1410       68  CT1 ... CT68
+  ...
+  H1     H            828       31  H11 ... H131
+  ...
+  H5     H             11        1  H5
+  ...
+  C0     Ca             1        1  C0
+  Cl-    Cl             1        1  CL-
+  Ho     H             17        5  HO1 ... HO10
+  Oh     O             17        5  OH1 ... OH10
+  Cg     C             30        6  CG1 ... CG6
+  H2     H              5        1  H2
+  ...
+  kind names shared by different types: 4 (H2 &lt;- H/H2, H5 &lt;- H/H5, H11 &lt;- H/H1, H12 &lt;- H/H1)
+
+Types whose element CP2K cannot guess (give them a &KIND section with ELEMENT in &SUBSYS):
+  Cl-    element Cl  kind name(s): CL-
+  Na+    element Na  kind name(s): NA+
+
+old    new   element    atoms  reason
+N3     NT    N             23  name can be produced by the kind counter of N
+H1     HZ    H            828  name can be produced by the kind counter of H
+N2     NL    N             84  name can be produced by the kind counter of N
+H5     HN    H             11  name can be produced by the kind counter of H
+H4     HL    H             28  name can be produced by the kind counter of H
+O2     OA    O            106  name can be produced by the kind counter of O
+H2     HR    H              5  name can be produced by the kind counter of H
+Oh     OD    O             17  same upper-case name as OH
+Ho     HT    H             17  same upper-case name as HO
+C0     CAL   Ca             1  CP2K reads it as C, element is Ca
+
+amylase.prmtop: 38 atom types, 259 CP2K kinds
+  kind names shared by different types: none
+
+10 type(s) renamed. Topology written to amylase.prmtop; table in type_renaming.dat
+</pre>
+
+<br/>
+
+- <p align="justify">Four kind names are shared in the original topology: the GLYCAM anomeric H (H2) and the His H5 each share a kind with backbone amide hydrogens, and two kinds of aliphatic H1 hydrogens do the same. The script renames every type whose name can be produced by the counter of another type (N2, N3, O2, H1, H2, H4, H5), even when there is no clash yet: the charge correction of Section IV creates new charges, and with them new counters. The charge-corrected topology of this tutorial would have five shared kinds with the original type names.</p>
+
+- <p align="justify">Use --dry-run to check a topology without writing anything (for example the corrected topology of Section IV), --map OLD:NEW to choose the new names yourself and --keep to protect a type. The table of renamed types is saved to type_renaming.dat; keep it with your inputs, since the type names appear in the CP2K output and in VMD.</p>
+
+- <p align="justify">Confirm with sander or pmemd that both topologies give the same single-point energy if you want to be sure: only the labels changed. In the rest of the tutorial, amylase.prmtop is the topology of every MM and mechanical embedding calculation.</p>
 
 <br/>
 
