@@ -154,17 +154,15 @@ MM_EM-1.restart  ->  qmmm_em_me.inp (ECOUPL NONE, amylase.prmtop)  ->  qmmm_em_e
 
 <br/>
 
-<pre style="color: white; background-color: black;">
-cp -r ~/enzyme_qmmm_prep_cp2k/qmmm_em ~/scratch/ && cd ~/scratch/qmmm_em
-cp ~/enzyme_qmmm_prep_cp2k/system_prep/{amylase.prmtop,amylase_ee.prmtop,forceeval_qmmm.cp2k.inc} .
-cp ~/scratch/mm_em/MM_EM-1.restart .
-mpirun -np 128 cp2k.psmp -i qmmm_em_me.inp -o qmmm_em_me.out
-mpirun -np 128 cp2k.psmp -i qmmm_em_ee.inp -o qmmm_em_ee.out
-</pre>
+<p align="justify">In the working directory, after the MM minimization (qmmm_em_me.inp reads MM_EM-1.restart, and qmmm_em_ee.inp reads the restart and wavefunction files of qmmm_em_me.inp):</p>
 
 <pre style="color: white; background-color: black;">
-./scripts/run_cp2k.sh -w ~/scratch/amylase -s "qmmm_em_me qmmm_em_ee" -n 128
+cp ../enzyme_qmmm_prep_cp2k/qmmm_em/{qmmm_em_me.inp,qmmm_em_ee.inp} .
+cp2k.psmp -i qmmm_em_me.inp -o qmmm_em_me.out
+cp2k.psmp -i qmmm_em_ee.inp -o qmmm_em_ee.out
 </pre>
+
+<p align="justify">As in Section V, put mpirun -np N (or srun) in front of each command to run in parallel; the example used 128 MPI ranks. The outputs of the example are in <a href="https://github.com/arvpinto/enzyme_qmmm_prep_cp2k/tree/main/qmmm_em" target="_blank">qmmm_em</a>.</p>
 
 <br/>
 
@@ -196,6 +194,19 @@ cp2k_opt qmmm_em_ee.out | tail -6
   Conv. for gradients        =                   NO
   Conv. in RMS gradients     =                  YES
 </pre>
+
+- <p align="justify">and the energy against the iteration number, with plot_cp2k.py (one panel per run, shown on screen and saved at 600 dpi as qmmm_em_energy.png):</p>
+
+<pre style="color: white; background-color: black;">
+python3 plot_cp2k.py opt qmmm_em_me.out qmmm_em_ee.out --prefix qmmm_em_energy \
+    --titles "Mechanical embedding (qmmm_em_me),Electrostatic embedding (qmmm_em_ee)"
+</pre>
+
+<div align="center">
+    <img src="assets/img/qmmm_em_energy.png" width="100%">
+</div>
+
+<p align="justify">The two runs use different Hamiltonians, so their absolute energies cannot be compared, only their shapes. The mechanical embedding energy decreases almost linearly, by 1050 kcal/mol in 500 iterations, and is still going down when MAX_ITER stops the run: the environment around the QM region is still relaxing. The electrostatic embedding energy drops by 3700 kcal/mol, most of it in the first 100 iterations, while the QM density and the MM charges around it adjust to each other, and then levels off until the optimizer converges at iteration 737.</p>
 
 <br/>
 
@@ -242,14 +253,13 @@ cp2k_opt qmmm_em_ee.out | tail -6
 
 <br/>
 
-<p align="justify">Both minimizations write a frame at every optimization step. Download QMMM_EM_ME-pos-1.dcd and QMMM_EM_EE-pos-1.dcd from the <a href="https://github.com/arvpinto/enzyme_qmmm_prep_cp2k/releases/latest" target="_blank">latest release</a> into qmmm_em and load them one after the other on the topology, with the QM region drawn by vmd_cp2k-repr.tcl. The labels follow the three distances of the table above:</p>
+<p align="justify">Both minimizations write a frame at every optimization step. Download QMMM_EM_ME-pos-1.dcd and QMMM_EM_EE-pos-1.dcd from the <a href="https://github.com/arvpinto/enzyme_qmmm_prep_cp2k/releases/latest" target="_blank">latest release</a> into the working directory if you did not run the minimizations, and load them one after the other on the topology, with the QM region drawn by vmd_cp2k-repr.tcl. The labels follow the three distances of the table above:</p>
 
 <pre style="color: white; background-color: black;">
-cd qmmm_em
 wget https://github.com/arvpinto/enzyme_qmmm_prep_cp2k/releases/latest/download/QMMM_EM_ME-pos-1.dcd
 wget https://github.com/arvpinto/enzyme_qmmm_prep_cp2k/releases/latest/download/QMMM_EM_EE-pos-1.dcd
-vmd -e ../scripts/vmd_cp2k-repr.tcl -args ../system_prep/amylase_ee.prmtop QMMM_EM_ME-pos-1.dcd QMMM_EM_EE-pos-1.dcd \
-    -qminc ../system_prep/forceeval_qmmm.cp2k.inc -bonds "7699:7700 3607:7699 3026:7700"
+vmd -e vmd_cp2k-repr.tcl -args amylase_ee.prmtop QMMM_EM_ME-pos-1.dcd QMMM_EM_EE-pos-1.dcd \
+    -qminc forceeval_qmmm.cp2k.inc -bonds "7699:7700 3607:7699 3026:7700"
 </pre>
 
 <p align="justify">Look at the capping atoms (the CPK atoms at the five QM/MM bonds), the hydrogen bonds of Asp299 with the O2 and O3 hydroxyls of the -1 sugar, the water of the QM region and the rotation of the Glu232 carboxylic group. The topology only gives VMD the atom names and bonds, so amylase.prmtop and amylase_ee.prmtop are interchangeable here.</p>

@@ -118,31 +118,45 @@ amylase.prmtop + frame_xray.rst7 + forceeval_subsys.cp2k.inc  ->  mm_em.inp (FIS
 
 <br/>
 
-<p align="justify">Each CP2K run reads files from system_prep and from the directory of the previous run. Copy them into the run directory (preferably a copy of it, in your scratch space) and run CP2K there:</p>
+<p align="justify">All the CP2K runs of the tutorial are done in the working directory of Section I, which now holds the topologies, the coordinates and the include files of Sections I to IV. Every input reads its files from the current directory and every run writes there the restart files that the next one reads, so each step is a copy of the input and one command:</p>
 
 <pre style="color: white; background-color: black;">
-cp -r ~/enzyme_qmmm_prep_cp2k/mm_em ~/scratch/ && cd ~/scratch/mm_em
-cp ~/enzyme_qmmm_prep_cp2k/system_prep/{amylase.prmtop,frame_xray.rst7,forceeval_subsys.cp2k.inc} .
-mpirun -np 64 cp2k.psmp -i mm_em.inp -o mm_em.out
+cp ../enzyme_qmmm_prep_cp2k/mm_em/mm_em.inp .
+cp2k.psmp -i mm_em.inp -o mm_em.out
 </pre>
 
-<p align="justify">or, from the repository directory, let run_cp2k.sh copy the files and run the stages in order, in a work directory that mirrors the repository:</p>
+- <p align="justify">cp2k.psmp is the MPI + OpenMP executable of CP2K; cp2k.popt, the MPI-only executable of older versions, is used in the same way. To run on several cores, put the MPI launcher of your machine in front of the same command, e.g. mpirun -np 64 cp2k.psmp -i mm_em.inp -o mm_em.out (or srun inside a Slurm job). The example used 64 MPI ranks for this run and 128 for the QM/MM runs.</p>
+
+- <p align="justify">If you did not do Sections I to IV yourself, copy their results from system_prep first:</p>
 
 <pre style="color: white; background-color: black;">
-./scripts/run_cp2k.sh -h
-./scripts/run_cp2k.sh -w ~/scratch/amylase -s mm_em -n 64
-./scripts/run_cp2k.sh -w ~/scratch/amylase -n 128 -l srun      # all stages, inside a Slurm job
-./scripts/run_cp2k.sh -w ~/scratch/amylase -d                  # print what would be done
+cp ../enzyme_qmmm_prep_cp2k/system_prep/{amylase.prmtop,amylase_ee.prmtop,frame_xray.rst7} .
+cp ../enzyme_qmmm_prep_cp2k/system_prep/{forceeval_subsys.cp2k.inc,forceeval_qmmm.cp2k.inc} .
 </pre>
+
+- <p align="justify">The outputs of the example are in <a href="https://github.com/arvpinto/enzyme_qmmm_prep_cp2k/tree/main/mm_em" target="_blank">mm_em</a>, to compare with yours.</p>
 
 <br/>
 
-<p align="justify">In the example, the minimization ran the 1000 steps of MAX_ITER in 4 minutes on 64 MPI ranks, and stopped with "MAXIMUM NUMBER OF OPTIMIZATION STEPS REACHED". With criteria this loose, and the energy down from -289.5 to -433.8 hartree, that is enough to start the QM/MM minimization; the cp2k_opt function of cp2k_funcs prints the convergence criteria at every step:</p>
+<p align="justify">In the example, the minimization ran the 1000 steps of MAX_ITER in 4 minutes on 64 MPI ranks, and stopped with "MAXIMUM NUMBER OF OPTIMIZATION STEPS REACHED". With criteria this loose, and the energy down from -284.5 to -433.8 hartree, that is enough to start the QM/MM minimization; the cp2k_opt function of cp2k_funcs prints the convergence criteria at every step:</p>
 
 <pre style="color: white; background-color: black;">
 source cp2k_funcs
 cp2k_opt mm_em.out | tail -6
 </pre>
+
+<p align="justify">plot_cp2k.py plots the energy against the iteration number. The figure is shown on screen and saved at 600 dpi (mm_em_energy.png), and the values are written to mm_em_energy.dat:</p>
+
+<pre style="color: white; background-color: black;">
+python3 plot_cp2k.py -h
+python3 plot_cp2k.py opt mm_em.out --titles "MM minimization (mm_em)"
+</pre>
+
+<div align="center">
+    <img src="assets/img/mm_em_energy.png" width="75%">
+</div>
+
+<p align="justify">The energy drops by about 150 hartree (94 000 kcal/mol), more than 80 % of it in the first 100 iterations, where the worst contacts of the starting structure and the gaps at the faces of the new box are removed. After that it keeps decreasing slowly: the minimization is not converged after 1000 iterations, which is fine here, since the goal is to remove the strain before the QM/MM steps.</p>
 
 <br/>
 
@@ -179,19 +193,17 @@ cp2k_opt mm_em.out | tail -6
 
 <br/>
 
-<p align="justify">The trajectories of the example are attached to the <a href="https://github.com/arvpinto/enzyme_qmmm_prep_cp2k/releases/latest" target="_blank">latest release</a> of the repository. Download MM_EM-pos-1.dcd into mm_em and load it with the topology:</p>
+<p align="justify">The trajectories of the example are attached to the <a href="https://github.com/arvpinto/enzyme_qmmm_prep_cp2k/releases/latest" target="_blank">latest release</a> of the repository. If you did not run the minimization, download MM_EM-pos-1.dcd into the working directory. Load it with the topology:</p>
 
 <pre style="color: white; background-color: black;">
-cd mm_em
 wget https://github.com/arvpinto/enzyme_qmmm_prep_cp2k/releases/latest/download/MM_EM-pos-1.dcd
-vmd -parm7 ../system_prep/amylase.prmtop -dcd MM_EM-pos-1.dcd
+vmd -parm7 amylase.prmtop -dcd MM_EM-pos-1.dcd
 </pre>
 
 <p align="justify">Use the selections of Section I (all, protein, resname 0GA 4GA ROH) and check that the protein, the oligosaccharide and the ions stay in place, and that the water at the faces of the box closes the gaps left by the new box. For the active site, vmd_cp2k-repr.tcl draws the QM region with dynamic bonds (Section VIII):</p>
 
 <pre style="color: white; background-color: black;">
-vmd -e ../scripts/vmd_cp2k-repr.tcl -args ../system_prep/amylase.prmtop MM_EM-pos-1.dcd \
-    -qminc ../system_prep/forceeval_qmmm.cp2k.inc -cartoon
+vmd -e vmd_cp2k-repr.tcl -args amylase.prmtop MM_EM-pos-1.dcd -qminc forceeval_qmmm.cp2k.inc -cartoon
 </pre>
 
 <br/>

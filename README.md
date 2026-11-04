@@ -36,7 +36,7 @@
 
 <h3><p align="center"><b> Repository </b></p></h3>
 
-<p align="justify">Each step of the tutorial has its own directory, with the inputs and the outputs of the example. The files that several CP2K runs read (topologies and include files) are kept once, in system_prep, and the restart files are kept in the directory of the run that wrote them; <a href="https://github.com/arvpinto/enzyme_qmmm_prep_cp2k/blob/main/scripts/run_cp2k.sh" target="_blank">run_cp2k.sh</a> copies them where each run needs them.</p>
+<p align="justify">Each step of the tutorial has its own directory, with the inputs and the outputs of the example. The files that several CP2K runs read (topologies and include files) are kept once, in system_prep, and the restart files are kept in the directory of the run that wrote them. To follow the tutorial, work in a single directory (Section I) and copy the CP2K inputs there one at a time (Section V).</p>
 
 | Directory | Content |
 | :--- | :--- |
@@ -54,9 +54,9 @@
 | <a href="https://github.com/arvpinto/enzyme_qmmm_prep_cp2k/blob/main/scripts/prmtop_fix_types.py" target="_blank">prmtop_fix_types.py</a> | Checks the atom types of a prmtop against the way CP2K reads them, and renames those that would be merged or misread |
 | <a href="https://github.com/arvpinto/enzyme_qmmm_prep_cp2k/blob/main/scripts/mol2_qmsel.sh" target="_blank">mol2_qmsel.sh</a> | Converts a MOL2 file of the QM region into VMD, PyMOL and Amber mask selections |
 | <a href="https://github.com/arvpinto/enzyme_qmmm_prep_cp2k/blob/main/scripts/vmd_cp2k-qmmm.tcl" target="_blank">vmd_cp2k-qmmm.tcl</a> | VMD script that writes the &CELL, &QM_KIND and &LINK include files and the ParmEd script of the charge correction |
-| <a href="https://github.com/arvpinto/enzyme_qmmm_prep_cp2k/blob/main/scripts/run_cp2k.sh" target="_blank">run_cp2k.sh</a> | Runs the CP2K stages in order, copying the files each one needs, in place or in a work directory |
 | <a href="https://github.com/arvpinto/enzyme_qmmm_prep_cp2k/blob/main/scripts/cp2k_funcs" target="_blank">cp2k_funcs</a> | Bash functions to read CP2K outputs (optimization convergence, MD energies, QM temperature, CV, QM atom serials) |
 | <a href="https://github.com/arvpinto/enzyme_qmmm_prep_cp2k/blob/main/scripts/vmd_cp2k-repr.tcl" target="_blank">vmd_cp2k-repr.tcl</a> | VMD script that loads CP2K trajectories and draws the QM region with dynamic bonds |
+| <a href="https://github.com/arvpinto/enzyme_qmmm_prep_cp2k/blob/main/scripts/plot_cp2k.py" target="_blank">plot_cp2k.py</a> | Plots of the energy against the iteration number of the minimizations and of the temperature against the time of the MD |
 | <a href="https://github.com/arvpinto/enzyme_qmmm_prep_cp2k/blob/main/scripts/smd_jarzynski.py" target="_blank">smd_jarzynski.py</a> | Work and Jarzynski free energy profile from one or more steered MD runs |
 
 <br>

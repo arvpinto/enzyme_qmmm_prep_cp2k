@@ -97,34 +97,43 @@ QMMM_EM_EE-1.restart + QMMM_EM_EE-RESTART.wfn  ->  qmmm_md_eq.inp (NVT, 300 K, 2
 
 <br/>
 
-<pre style="color: white; background-color: black;">
-cp -r ~/enzyme_qmmm_prep_cp2k/qmmm_md_eq ~/scratch/ && cd ~/scratch/qmmm_md_eq
-cp ~/enzyme_qmmm_prep_cp2k/system_prep/{amylase_ee.prmtop,forceeval_qmmm.cp2k.inc} .
-cp ~/scratch/qmmm_em/{QMMM_EM_EE-1.restart,QMMM_EM_EE-RESTART.wfn} .
-mpirun -np 128 cp2k.psmp -i qmmm_md_eq.inp -o qmmm_md_eq.out
-</pre>
+<p align="justify">In the working directory, after the QM/MM minimizations (the input reads QMMM_EM_EE-1.restart and QMMM_EM_EE-RESTART.wfn):</p>
 
 <pre style="color: white; background-color: black;">
-./scripts/run_cp2k.sh -w ~/scratch/amylase -s qmmm_md_eq -n 128
+cp ../enzyme_qmmm_prep_cp2k/qmmm_md_eq/qmmm_md_eq.inp .
+cp2k.psmp -i qmmm_md_eq.inp -o qmmm_md_eq.out
 </pre>
 
 <br/>
 
-<p align="justify">In the example, each MD step took about 10.5 s on 128 MPI ranks (5.9 h for the 2 ps), and every SCF converged (grep "SCF run NOT converged" qmmm_md_eq.out prints nothing). The cp2k_ener function collects the MD information of every step (time, energies, temperatures and CPU time) in a table, and cp2k_eqmmm the QM energy and the temperature of the QM region:</p>
+<p align="justify">In the example, each MD step took about 10.5 s on 128 MPI ranks (5.9 h for the 2 ps), and every SCF converged (grep "SCF run NOT converged" qmmm_md_eq.out prints nothing). The cp2k_ener function collects the MD information of every step (time, energies, temperatures and CPU time) in a table:</p>
 
 <pre style="color: white; background-color: black;">
 source cp2k_funcs
 cp2k_ener qmmm_md_eq.out      # -> qmmm_md_eq.ener.csv
-cp2k_eqmmm qmmm_md_eq.out     # -> qmmm_md_eq.eqmmm.csv
-tail -1 qmmm_md_eq.eqmmm.csv
-2000.000000 -448.51471611161202 0.119478476414E+00 0.114309351340E+00 359.316894 343.771383
 </pre>
 
 <br/>
 
-- <p align="justify">The temperature of the system fluctuates around 300 K after the first 0.5 ps (296.8 &plusmn; 4.7 K, from QMMM_MD_EQ-1.ener). The conserved quantity changes by about 4200 kcal/mol in the first 0.5 ps, while the minimized structure heats up; after that its net drift is below 100 kcal/mol, with fluctuations within about 1100 kcal/mol (0.2 % of the total).</p>
+<p align="justify">plot_cp2k.py plots the temperature of the system against the simulation time, from QMMM_MD_EQ-1.ener, with its 100 fs moving average and the target temperature (the figure is shown on screen and saved at 600 dpi as qmmm_md_eq_temperature.png):</p>
 
-- <p align="justify">The QM region runs hotter than the rest of the system: its average temperature over the run is 344 K (last column of qmmm_md_eq.eqmmm.csv), and 369 K over the last 1.5 ps. With a single thermostat for 68 000 atoms, the heat released or exchanged in a region of 65 atoms is not removed where it appears. To thermostat the QM region on its own, split the region into two &DEFINE_REGION sections, one with QM_SUBSYS ATOMIC and one with MM_SUBSYS ATOMIC, and compare the QM temperature again.</p>
+<pre style="color: white; background-color: black;">
+python3 plot_cp2k.py temp QMMM_MD_EQ-1.ener --prefix qmmm_md_eq_temperature
+</pre>
+
+<pre style="color: white; background-color: black;">
+QMMM_MD_EQ-1.ener: 2001 steps, t = 0 to 2000 fs, T = 282.3 +/- 31.7 K over the run, 299.2 +/- 1.4 K over the second half
+wrote qmmm_md_eq_temperature.dat
+wrote qmmm_md_eq_temperature.png (600 dpi)
+</pre>
+
+<div align="center">
+    <img src="assets/img/qmmm_md_eq_temperature.png" width="85%">
+</div>
+
+<br/>
+
+- <p align="justify">The velocities are generated at 300 K on a minimized structure, so in the first femtoseconds about half of the kinetic energy flows into potential energy (equipartition) and the temperature drops to about 180 K. The thermostat then heats the system back to 300 K in about 1 ps; over the second ps the whole system is at 299.2 &plusmn; 1.4 K. The conserved quantity changes by about 4200 kcal/mol in the first 0.5 ps, while the thermostat brings the energy in; after that its net drift is below 100 kcal/mol, with fluctuations within about 1100 kcal/mol (0.2 % of the total).</p>
 
 - <p align="justify">2 ps thermalizes the active site after the minimization and gives the steered MD a dynamic starting point; it does not sample the reactant state. For a free energy study, run longer and/or several replicas from different initial velocities.</p>
 
@@ -146,13 +155,12 @@ tail -1 qmmm_md_eq.eqmmm.csv
 
 <br/>
 
-<p align="justify">Download QMMM_MD_EQ-pos-1.dcd from the <a href="https://github.com/arvpinto/enzyme_qmmm_prep_cp2k/releases/latest" target="_blank">latest release</a> into qmmm_md_eq and play it with the QM region drawn with dynamic bonds:</p>
+<p align="justify">Download QMMM_MD_EQ-pos-1.dcd from the <a href="https://github.com/arvpinto/enzyme_qmmm_prep_cp2k/releases/latest" target="_blank">latest release</a> into the working directory if you did not run the MD, and play it with the QM region drawn with dynamic bonds:</p>
 
 <pre style="color: white; background-color: black;">
-cd qmmm_md_eq
 wget https://github.com/arvpinto/enzyme_qmmm_prep_cp2k/releases/latest/download/QMMM_MD_EQ-pos-1.dcd
-vmd -e ../scripts/vmd_cp2k-repr.tcl -args ../system_prep/amylase_ee.prmtop QMMM_MD_EQ-pos-1.dcd \
-    -qminc ../system_prep/forceeval_qmmm.cp2k.inc -bonds "7699:7700 3607:7699 3026:7700"
+vmd -e vmd_cp2k-repr.tcl -args amylase_ee.prmtop QMMM_MD_EQ-pos-1.dcd \
+    -qminc forceeval_qmmm.cp2k.inc -bonds "7699:7700 3607:7699 3026:7700"
 </pre>
 
 <p align="justify">The CV of the next section is the difference between the glycosidic bond C1(501)-O4(500) and the distance between the acidic proton of Glu232 and the same O4 (serials 7700, 7699 and 3607). Measure it along the trajectory in the VMD console (index = serial - 1), or plot the labels from Graphics > Labels > Bonds > Graph:</p>

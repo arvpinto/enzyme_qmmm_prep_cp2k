@@ -13,7 +13,7 @@ frame_xray.pdb  ->  tleap (ff14SB + GLYCAM_06j-1 + TIP3P)  ->  amylase_prep.prmt
 
 <p align="justify">In this section we look at the starting structure, build the Amber topology (prmtop) and coordinates (rst7) of the solvated complex, and check that CP2K will read the topology as Amber does. The second step is short, but skipping it can give wrong MM electrostatics without any error message.</p>
 
-<p align="justify">The files of Sections I to IV, inputs and outputs, are in <a href="https://github.com/arvpinto/enzyme_qmmm_prep_cp2k/tree/main/system_prep" target="_blank">system_prep</a>. To follow along, work in a new directory with the three inputs (frame_xray.pdb, leap_amyl.in and hl_65atoms.mol2) and the scripts, and compare what you get with the files of system_prep:</p>
+<p align="justify">The files of Sections I to IV, inputs and outputs, are in <a href="https://github.com/arvpinto/enzyme_qmmm_prep_cp2k/tree/main/system_prep" target="_blank">system_prep</a>. To follow along, work in a new directory with the three inputs (frame_xray.pdb, leap_amyl.in and hl_65atoms.mol2) and the scripts, and compare what you get with the files of system_prep. The same directory is used for the CP2K runs of Sections V to VIII:</p>
 
 <pre style="color: white; background-color: black;">
 git clone https://github.com/arvpinto/enzyme_qmmm_prep_cp2k.git

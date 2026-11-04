@@ -125,15 +125,11 @@ QMMM_MD_EQ-1.restart(.bin) + .wfn  ->  qmmm_md_smd.inp (moving restraint on the 
 
 <br/>
 
-<pre style="color: white; background-color: black;">
-cp -r ~/enzyme_qmmm_prep_cp2k/qmmm_md_smd ~/scratch/ && cd ~/scratch/qmmm_md_smd
-cp ~/enzyme_qmmm_prep_cp2k/system_prep/{amylase_ee.prmtop,forceeval_qmmm.cp2k.inc} .
-cp ~/scratch/qmmm_md_eq/{QMMM_MD_EQ-1.restart,QMMM_MD_EQ-1.restart.bin,QMMM_MD_EQ-RESTART.wfn} .
-mpirun -np 128 cp2k.psmp -i qmmm_md_smd.inp -o qmmm_md_smd.out
-</pre>
+<p align="justify">In the working directory, after the NVT run (the input reads QMMM_MD_EQ-1.restart, QMMM_MD_EQ-1.restart.bin and QMMM_MD_EQ-RESTART.wfn):</p>
 
 <pre style="color: white; background-color: black;">
-./scripts/run_cp2k.sh -w ~/scratch/amylase -s qmmm_md_smd -n 128
+cp ../enzyme_qmmm_prep_cp2k/qmmm_md_smd/qmmm_md_smd.inp .
+cp2k.psmp -i qmmm_md_smd.inp -o qmmm_md_smd.out
 </pre>
 
 <br/>
@@ -151,7 +147,7 @@ cp2k_colvar QMMM_MD_SMD-COLVAR.metadynLog | sed -n '1,3p;$p'
 
 <br/>
 
-<p align="justify">After the first 50 fs the CV stays on average 0.07 &Aring; from the moving target: the restraint is in control throughout the pull. The temperature of the system stays at 299.8 &plusmn; 0.8 K, while the QM region again runs hotter (381 K on average, cp2k_eqmmm).</p>
+<p align="justify">After the first 50 fs the CV stays on average 0.07 &Aring; from the moving target: the restraint is in control throughout the pull. The temperature of the system stays at 299.8 &plusmn; 0.8 K.</p>
 
 <br/>
 
@@ -163,13 +159,12 @@ cp2k_colvar QMMM_MD_SMD-COLVAR.metadynLog | sed -n '1,3p;$p'
 
 <br/>
 
-<p align="justify">Download QMMM_MD_SMD-pos-1.dcd from the <a href="https://github.com/arvpinto/enzyme_qmmm_prep_cp2k/releases/latest" target="_blank">latest release</a> into qmmm_md_smd. vmd_cp2k-repr.tcl draws the QM region with dynamic bonds, which are drawn only while two atoms are within the bonding distance, so bonds appear and disappear along the trajectory. The labels given with -bonds can be plotted from Graphics > Labels > Bonds > Graph; here they follow the two distances of the CV, the nucleophile and the water of the QM region:</p>
+<p align="justify">Download QMMM_MD_SMD-pos-1.dcd from the <a href="https://github.com/arvpinto/enzyme_qmmm_prep_cp2k/releases/latest" target="_blank">latest release</a> into the working directory if you did not run the steered MD. vmd_cp2k-repr.tcl draws the QM region with dynamic bonds, which are drawn only while two atoms are within the bonding distance, so bonds appear and disappear along the trajectory. The labels given with -bonds can be plotted from Graphics > Labels > Bonds > Graph; here they follow the two distances of the CV, the nucleophile and the water of the QM region:</p>
 
 <pre style="color: white; background-color: black;">
-cd qmmm_md_smd
 wget https://github.com/arvpinto/enzyme_qmmm_prep_cp2k/releases/latest/download/QMMM_MD_SMD-pos-1.dcd
-vmd -e ../scripts/vmd_cp2k-repr.tcl -args ../system_prep/amylase_ee.prmtop QMMM_MD_SMD-pos-1.dcd \
-    -qminc ../system_prep/forceeval_qmmm.cp2k.inc \
+vmd -e vmd_cp2k-repr.tcl -args amylase_ee.prmtop QMMM_MD_SMD-pos-1.dcd \
+    -qminc forceeval_qmmm.cp2k.inc \
     -bonds "7699:7700 3607:7699 3026:7700 3607:7783 7785:7699"
 </pre>
 
@@ -208,8 +203,8 @@ vmd -e ../scripts/vmd_cp2k-repr.tcl -args ../system_prep/amylase_ee.prmtop QMMM_
 <p align="justify">The work done by the moving restraint is W(t) = &int; &part;U/&part;&lambda; d&lambda;, with &lambda;(t) = TARGET + TARGET_GROWTH t and &part;U/&part;&lambda; = -2K (CV - &lambda;). The Jarzynski equality relates the work of N independent pulls to the free energy along &lambda;, F(&lambda;) = -kT ln &lt;exp(-W(&lambda;)/kT)&gt;. smd_jarzynski.py integrates the work from the metadynLog files, reads TARGET, TARGET_GROWTH, TARGET_LIMIT, K and the temperature from the echo of the input in the CP2K output (or from the command line), and computes the Jarzynski average, the second-order cumulant expansion, F = &lt;W&gt; - var(W)/2kT, and their bootstrap errors when there are several replicas:</p>
 
 <pre style="color: white; background-color: black;">
-python3 ../scripts/smd_jarzynski.py -h
-python3 ../scripts/smd_jarzynski.py -l QMMM_MD_SMD-COLVAR.metadynLog -o qmmm_md_smd.out
+python3 smd_jarzynski.py -h
+python3 smd_jarzynski.py -l QMMM_MD_SMD-COLVAR.metadynLog -o qmmm_md_smd.out
 </pre>
 
 <pre style="color: white; background-color: black;">
@@ -237,7 +232,7 @@ python3 ../scripts/smd_jarzynski.py -l QMMM_MD_SMD-COLVAR.metadynLog -o qmmm_md_
 - <p align="justify">For an actual free energy estimate, run several pulls with the same protocol from different starting points (e.g. frames of a longer NVT run, or new velocities), give all their metadynLog files to the script, and check that the Jarzynski and cumulant estimates agree within their bootstrap errors; slower pulls need fewer replicas. Umbrella sampling with windows started from frames of the steered MD is the usual alternative.</p>
 
 <pre style="color: white; background-color: black;">
-python3 ../scripts/smd_jarzynski.py -l rep*/QMMM_MD_SMD-COLVAR.metadynLog -o rep1/qmmm_md_smd.out --nboot 500 --prefix smd_replicas
+python3 smd_jarzynski.py -l rep*/QMMM_MD_SMD-COLVAR.metadynLog -o rep1/qmmm_md_smd.out --nboot 500 --prefix smd_replicas
 </pre>
 
 <br/>
