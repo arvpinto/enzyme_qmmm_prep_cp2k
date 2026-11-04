@@ -8,10 +8,10 @@
 # and adds representations of the QM layer and of the QM/MM bonds to the top molecule.
 #
 # Usage (topology and coordinates with box information, e.g. the tleap output):
-#   vmd -parm7 amylase.prmtop -rst7 frame_xray.inpcrd -e vmd_cp2k-qmmm.tcl
+#   vmd -parm7 amylase.prmtop -rst7 frame_xray.rst7 -e vmd_cp2k-qmmm.tcl
 #       -> the script asks for the QM selection (VMD syntax) in the terminal
-#   vmd -parm7 amylase.prmtop -rst7 frame_xray.inpcrd -e vmd_cp2k-qmmm.tcl -args -selfile qm_sel.vmd
-#   vmd -parm7 amylase.prmtop -rst7 frame_xray.inpcrd -e vmd_cp2k-qmmm.tcl -args -sel "resid 196 and ..."
+#   vmd -parm7 amylase.prmtop -rst7 frame_xray.rst7 -e vmd_cp2k-qmmm.tcl -args -selfile qm_sel.vmd
+#   vmd -parm7 amylase.prmtop -rst7 frame_xray.rst7 -e vmd_cp2k-qmmm.tcl -args -sel "resid 196 and ..."
 #   (add -dispdev text to run without graphics)
 #
 # Options (after -args):

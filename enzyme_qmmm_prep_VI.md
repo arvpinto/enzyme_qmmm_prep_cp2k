@@ -4,14 +4,14 @@
 <br/>
 
 <pre style="color: white; background-color: black;">
-EM-1.restart  ->  em-me_gpw.inp (ECOUPL NONE, amylase.prmtop)  ->  em-ee_gpw.inp (ECOUPL GAUSS, amylase_ee.prmtop)  ->  EM-EE-GPW-1.restart + EM-EE-GPW-RESTART.wfn
+MM_EM-1.restart  ->  qmmm_em_me.inp (ECOUPL NONE, amylase.prmtop)  ->  qmmm_em_ee.inp (ECOUPL GAUSS, amylase_ee.prmtop)  ->  QMMM_EM_EE-1.restart + QMMM_EM_EE-RESTART.wfn
 </pre>
 
 ---
 
 <br/>
 
-<p align="justify">The MM-minimized structure is relaxed with the QM/MM Hamiltonian in two steps. The first uses mechanical embedding, where the SCF starts from scratch and is cheap and robust; its wavefunction is then the starting guess of the second, with electrostatic embedding, which gives the structure and the wavefunction from which the QM/MM MD starts.</p>
+<p align="justify">The MM-minimized structure is relaxed with the QM/MM Hamiltonian in two steps. The first uses mechanical embedding, where the SCF starts from scratch and is cheap and robust; its wavefunction is then the starting guess of the second, with electrostatic embedding, which gives the structure and the wavefunction from which the QM/MM MD starts. Both runs are in <a href="https://github.com/arvpinto/enzyme_qmmm_prep_cp2k/tree/main/qmmm_em" target="_blank">qmmm_em</a>.</p>
 
 <br/>
 
@@ -91,11 +91,11 @@ EM-1.restart  ->  em-me_gpw.inp (ECOUPL NONE, amylase.prmtop)  ->  em-ee_gpw.inp
 
 <br/>
 
-<h3> <p align="center"><b> The &QMMM section </b></p> </h3>
+<h3> <p align="center"><b> The &QMMM section and the two runs </b></p> </h3>
 
 <br/>
 
-<p align="justify">Mechanical embedding (em-me_gpw.inp, with amylase.prmtop):</p>
+<p align="justify">Mechanical embedding (qmmm_em_me.inp, with amylase.prmtop):</p>
 
 <pre style="color: white; background-color: black;">
   &QMMM
@@ -106,7 +106,7 @@ EM-1.restart  ->  em-me_gpw.inp (ECOUPL NONE, amylase.prmtop)  ->  em-ee_gpw.inp
   &END QMMM
 </pre>
 
-<p align="justify">Electrostatic embedding (em-ee_gpw.inp, react_nvt-ee_gpw.inp and smd-nvt-ee_gpw.inp, with amylase_ee.prmtop):</p>
+<p align="justify">Electrostatic embedding (qmmm_em_ee.inp, qmmm_md_eq.inp and qmmm_md_smd.inp, with amylase_ee.prmtop):</p>
 
 <pre style="color: white; background-color: black;">
   &QMMM
@@ -127,7 +127,22 @@ EM-1.restart  ->  em-me_gpw.inp (ECOUPL NONE, amylase.prmtop)  ->  em-ee_gpw.inp
 
 - <p align="justify">A negative SPHERICAL_CUTOFF switches the cutoff off: every MM charge acts on the QM density. The value written here (-0.529 &Aring;) is -1 bohr, as CP2K prints it in a restart file.</p>
 
-- <p align="justify">The rest of each input (the &MM section, &RESCALE_FORCES and the &TOPOLOGY of &SUBSYS) is that of em.inp, without COORD_FILE_NAME and without the &CELL include: the positions and the cell come from the restart file of the previous step (&EXT_RESTART with RESTART_POS and RESTART_CELL). RESTART_COUNTERS FALSE starts each run from step 0.</p>
+- <p align="justify">The rest of each input (the &MM section, &RESCALE_FORCES and the &TOPOLOGY of &SUBSYS) is that of mm_em.inp, without COORD_FILE_NAME and without the &CELL include: the positions and the cell come from the restart file of the previous step (&EXT_RESTART with RESTART_POS and RESTART_CELL). RESTART_COUNTERS FALSE starts each run from step 0.</p>
+
+<br/>
+
+| | qmmm_em_me.inp | qmmm_em_ee.inp |
+| :--- | :--- | :--- |
+| ECOUPL | NONE | GAUSS (GEEP, 6 Gaussians) |
+| Topology | amylase.prmtop | amylase_ee.prmtop |
+| SCF guess | ATOMIC | RESTART (QMMM_EM_ME-RESTART.wfn) |
+| Starts from | MM_EM-1.restart | QMMM_EM_ME-1.restart |
+| MAX_FORCE / MAX_ITER | 1.2 x 10<sup>-3</sup> hartree/bohr / 500 | 4.5 x 10<sup>-4</sup> hartree/bohr (default) / 1000 |
+| Result in the example | 500 steps, MAX_ITER reached (55 min) | converged after 737 steps (2 h 44 min) |
+
+<br/>
+
+<p align="justify">The energies of the two embedding schemes cannot be compared with each other: what matters is that each run behaves as expected. The mechanical embedding run is only a cheap first relaxation of the QM region and its wavefunction, so stopping at MAX_ITER is acceptable there; the electrostatic embedding run ended when the L-BFGS optimizer met its own convergence criteria ("Specific L-BFGS convergence criteria ... satisfied .... run CONVERGED!"), with the maximum gradient at 5.6 x 10<sup>-3</sup> hartree/bohr, above MAX_FORCE, and the other three criteria met.</p>
 
 <br/>
 
@@ -140,12 +155,15 @@ EM-1.restart  ->  em-me_gpw.inp (ECOUPL NONE, amylase.prmtop)  ->  em-ee_gpw.inp
 <br/>
 
 <pre style="color: white; background-color: black;">
-mpirun -np 64 cp2k.psmp -i em-me_gpw.inp -o em-me_gpw.out
-mpirun -np 64 cp2k.psmp -i em-ee_gpw.inp -o em-ee_gpw.out
+cp -r ~/enzyme_qmmm_prep_cp2k/qmmm_em ~/scratch/ && cd ~/scratch/qmmm_em
+cp ~/enzyme_qmmm_prep_cp2k/system_prep/{amylase.prmtop,amylase_ee.prmtop,forceeval_qmmm.cp2k.inc} .
+cp ~/scratch/mm_em/MM_EM-1.restart .
+mpirun -np 128 cp2k.psmp -i qmmm_em_me.inp -o qmmm_em_me.out
+mpirun -np 128 cp2k.psmp -i qmmm_em_ee.inp -o qmmm_em_ee.out
 </pre>
 
 <pre style="color: white; background-color: black;">
-./run_cp2k.sh -n 64 -s "em-me em-ee"
+./scripts/run_cp2k.sh -w ~/scratch/amylase -s "qmmm_em_me qmmm_em_ee" -n 128
 </pre>
 
 <br/>
@@ -153,22 +171,79 @@ mpirun -np 64 cp2k.psmp -i em-ee_gpw.inp -o em-ee_gpw.out
 <p align="justify">Before the optimization goes far, check the first SCF of each run, in this order:</p>
 
 <pre style="color: white; background-color: black;">
-grep -E "Total charge of the classical|Number of electrons|SCF run converged|outer SCF loop|SKIN|Total FORCE_EVAL" em-ee_gpw.out | head
+grep -E "Total Charge of the Classical|Number of electrons|SCF run converged|outer SCF loop|within the SKIN" qmmm_em_ee.out | head -5
 </pre>
 
-- <p align="justify">the charge of the classical system: +2 with the corrected topology (electrostatic embedding, Section IV);</p>
-- <p align="justify">the number of electrons: 216 for this QM region (18 C x 4 + 18 O x 6 + 29 H + 5 capping H + 2 for the charge of -2);</p>
-- <p align="justify">the convergence of the SCF, and no warnings about QM atoms within the SKIN of the QM cell;</p>
-- <p align="justify">the energy and the convergence criteria along the optimization (cp2k_opt em-me_gpw.out).</p>
+<pre style="color: white; background-color: black;">
+ CHARGE_INFO| Total Charge of the Classical System:                     2.000000
+ Number of electrons:                                                        216
+  *** SCF run converged in    13 steps ***
+  outer SCF loop converged in   1 iterations or   13 steps
+</pre>
+
+- <p align="justify">the charge of the classical system: +2 with the corrected topology in electrostatic embedding (Section IV); in the mechanical embedding run the QM atoms keep their MM charges and the line reads -0.000000;</p>
+- <p align="justify">the number of electrons: 216 (Section II);</p>
+- <p align="justify">the convergence of the SCF, and no warnings about QM atoms within the SKIN of the QM cell (the grep prints nothing for them here);</p>
+- <p align="justify">the energy and the convergence criteria along the optimization:</p>
+
+<pre style="color: white; background-color: black;">
+source cp2k_funcs
+cp2k_opt qmmm_em_ee.out | tail -6
+ --------  Informations at step =   737 ------------
+  Decrease in energy         =                   NO
+  Convergence in step size   =                  YES
+  Convergence in RMS step    =                  YES
+  Conv. for gradients        =                   NO
+  Conv. in RMS gradients     =                  YES
+</pre>
 
 <br/>
 
-- <p align="justify">Both inputs stop after 100 optimization steps (MAX_ITER). The mechanical embedding run has looser criteria (MAX_FORCE 1.2 x 10<sup>-3</sup> hartree/bohr) than the electrostatic embedding run (the CP2K defaults, 4.5 x 10<sup>-4</sup>). If a run reaches MAX_ITER without converging, continue it from its own restart file (change RESTART_FILE_NAME and WFN_RESTART_FILE_NAME of a copy of the input) before going on.</p>
+- <p align="justify">Two other warnings appear in the QM/MM outputs: the mismatch between the periodicities of the QM &CELL and &POISSON (Section III), and "Using a non-square number of MPI ranks might lead to poor performance", which only concerns the speed of the matrix multiplications.</p>
 
-- <p align="justify">The energies of the two embedding schemes cannot be compared with each other. What matters is that each run converges and that the structure stays chemically sensible: look at the trajectories (written at every optimization step) with the representation script of Section VIII, and check the capping O-H and C-H distances and the hydrogen bonds of the active site.</p>
+<br/>
+
+---
+
+<br/>
+
+<h3> <p align="center"><b> What the minimizations did to the active site </b></p> </h3>
+
+<br/>
+
+<p align="justify">The distances that matter for the reaction, measured in the starting structure and in the restart file of each minimization:</p>
+
+| Structure | d(O4-C1) | d(HE2-O4) | d(OD1<sub>Asp196</sub>-C1) | CV = d(O4-C1) - d(HE2-O4) |
+| :--- | ---: | ---: | ---: | ---: |
+| frame_xray.rst7 | 1.52 &Aring; | 1.97 &Aring; | 3.10 &Aring; | -0.45 &Aring; |
+| MM_EM-1.restart | 1.49 &Aring; | 2.82 &Aring; | 3.25 &Aring; | -1.33 &Aring; |
+| QMMM_EM_ME-1.restart | 1.51 &Aring; | 3.19 &Aring; | 3.52 &Aring; | -1.68 &Aring; |
+| QMMM_EM_EE-1.restart | 1.48 &Aring; | 3.25 &Aring; | 3.35 &Aring; | -1.76 &Aring; |
+
+<br/>
+
+<p align="justify">The hydrogen bond between the acidic proton of Glu232 and the glycosidic oxygen, present in the starting frame, is lost already in the MM minimization: HE2 turns away from O4 (3.2 &Aring; after the QM/MM minimizations), while Glu232 keeps its proton. Keep this in mind for Sections VII and VIII: the collective variable of the steered MD starts further from the reactive arrangement than the crystal-like frame suggests.</p>
+
+<br/>
+
+---
+
+<br/>
+
+<h3> <p align="center"><b> Looking at the trajectories </b></p> </h3>
+
+<br/>
+
+<p align="justify">Both minimizations write a frame at every optimization step. Download QMMM_EM_ME-pos-1.dcd and QMMM_EM_EE-pos-1.dcd from the <a href="https://github.com/arvpinto/enzyme_qmmm_prep_cp2k/releases/latest" target="_blank">latest release</a> into qmmm_em and load them one after the other on the topology, with the QM region drawn by vmd_cp2k-repr.tcl. The labels follow the three distances of the table above:</p>
 
 <pre style="color: white; background-color: black;">
-vmd -e vmd_cp2k-repr.tcl -args amylase_ee.prmtop EM-ME-GPW-pos-1.dcd EM-EE-GPW-pos-1.dcd -qminc forceeval_qmmm.cp2k.inc
+cd qmmm_em
+wget https://github.com/arvpinto/enzyme_qmmm_prep_cp2k/releases/latest/download/QMMM_EM_ME-pos-1.dcd
+wget https://github.com/arvpinto/enzyme_qmmm_prep_cp2k/releases/latest/download/QMMM_EM_EE-pos-1.dcd
+vmd -e ../scripts/vmd_cp2k-repr.tcl -args ../system_prep/amylase_ee.prmtop QMMM_EM_ME-pos-1.dcd QMMM_EM_EE-pos-1.dcd \
+    -qminc ../system_prep/forceeval_qmmm.cp2k.inc -bonds "7699:7700 3607:7699 3026:7700"
 </pre>
+
+<p align="justify">Look at the capping atoms (the CPK atoms at the five QM/MM bonds), the hydrogen bonds of Asp299 with the O2 and O3 hydroxyls of the -1 sugar, the water of the QM region and the rotation of the Glu232 carboxylic group. The topology only gives VMD the atom names and bonds, so amylase.prmtop and amylase_ee.prmtop are interchangeable here.</p>
 
 <br/>

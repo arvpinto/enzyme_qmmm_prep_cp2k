@@ -4,7 +4,7 @@
 <br/>
 
 <pre style="color: white; background-color: black;">
-amylase.prmtop + frame_xray.inpcrd  ->  QM region picked in PyMOL (hl_65atoms.mol2)  ->  mol2_qmsel.sh  ->  VMD / PyMOL / Amber selections
+amylase.prmtop + frame_xray.rst7  ->  QM region in VMD (hl_65atoms.mol2)  ->  mol2_qmsel.sh  ->  qm_sel.vmd / qm_sel.pml / qm_sel.mask
 </pre>
 
 ---
@@ -23,9 +23,9 @@ amylase.prmtop + frame_xray.inpcrd  ->  QM region picked in PyMOL (hl_65atoms.mo
 
 - <p align="justify">Cut covalent bonds preferably between apolar sp<sup>3</sup> carbon atoms (C&alpha;-C&beta; or C&beta;-C&gamma; of side chains), never in a peptide bond, and keep the boundary at least three bonds away from any bond that changes during the reaction. Avoid a QM atom with two MM neighbours and an MM atom bonded to two QM atoms.</p>
 
-- <p align="justify">Water molecules can be part of the QM region, but in QM/MM MD they can diffuse away. Check where they are at the end of each run.</p>
+- <p align="justify">Water molecules can be part of the QM region, but in QM/MM MD they can diffuse away, or take part in the reaction in ways you did not plan (Section VIII). Check where they are at the end of each run.</p>
 
-- <p align="justify">The cost of QM/MM MD grows quickly with the number of QM atoms (and with the size of the QM cell, Section III). A smaller, well chosen region with more sampling is often better than a larger one with less.</p>
+- <p align="justify">The cost of QM/MM MD grows quickly with the number of QM atoms and with the size of the QM cell (Section III). A smaller, well chosen region with more sampling is often better than a larger one with less.</p>
 
 <br/>
 
@@ -34,6 +34,14 @@ amylase.prmtop + frame_xray.inpcrd  ->  QM region picked in PyMOL (hl_65atoms.mo
 <br/>
 
 <h3> <p align="center"><b> QM region of the example </b></p> </h3>
+
+<br/>
+
+<div align="center">
+    <img src="assets/img/qm_region.png" width="45%">
+</div>
+
+<p align="center"><i>QM region in the starting structure. Orange: MM atoms bonded to the QM region; yellow: Asp196 OD1-C1 (3.1 &Aring;) and Glu232 HE2-O4 (2.0 &Aring;).</i></p>
 
 <br/>
 
@@ -53,7 +61,7 @@ amylase.prmtop + frame_xray.inpcrd  ->  QM region picked in PyMOL (hl_65atoms.mo
 
 - <p align="justify">Five bonds are cut: C&alpha;-C&beta; of Asp196 and Asp299, C&beta;-C&gamma; of Glu232, and two glycosidic C-O bonds on both sides of the QM sugars, C4(499)-O4(499) and O4(501)-C1(502). The C-O cuts are polar, which the guidelines advise against, but they are a common compromise for oligosaccharides: the alternative is to include the neighbouring glucose units whole. Both are at least four bonds away from the reacting atoms (C1 of 501 and O4 of 500), and each gives a capping hydrogen on an oxygen atom, which turns the boundary oxygen into a hydroxyl group.</p>
 
-- <p align="justify">The charge of the region (-2) comes from the two aspartates: Glu232 is neutral and the sugars and the water have no net charge. This is the &DFT CHARGE of the QM/MM inputs. With GTH pseudopotentials the region and its five capping hydrogens have 216 valence electrons, an even number, consistent with the closed-shell singlet (MULTIPLICITY 1) of the inputs.</p>
+- <p align="justify">The charge of the region (-2) comes from the two aspartates: Glu232 is neutral and the sugars and the water have no net charge. This is the &DFT CHARGE of the QM/MM inputs. With GTH pseudopotentials the region and its five capping hydrogens have 216 valence electrons (18 x 4 + 18 x 6 + 29 + 5 + 2), an even number, consistent with the closed-shell singlet (MULTIPLICITY 1) of the inputs.</p>
 
 <br/>
 
@@ -61,21 +69,22 @@ amylase.prmtop + frame_xray.inpcrd  ->  QM region picked in PyMOL (hl_65atoms.mo
 
 <br/>
 
-<h3> <p align="center"><b> From a PyMOL selection to VMD and Amber </b></p> </h3>
+<h3> <p align="center"><b> Building the selection in VMD </b></p> </h3>
 
 <br/>
 
-<p align="justify">Picking atoms by clicking is easiest in PyMOL. Write a PDB file from the topology and the coordinates with ambpdb (so that the residues keep the sequential numbering of the topology), open it in PyMOL, select the QM atoms and save the selection as MOL2:</p>
+<p align="justify">Load the CP2K-ready topology and the coordinates, and explore the active site from the Tk console (Extensions > Tk Console). Distance-based selections are a good start, e.g. every residue with an atom within 4 &Aring; of the two sugars that flank the scissile bond:</p>
 
 <pre style="color: white; background-color: black;">
-ambpdb -p amylase.prmtop -c frame_xray.inpcrd > amylase.pdb
-pymol amylase.pdb
-PyMOL> save hl_65atoms.mol2, sele
+vmd -parm7 amylase.prmtop -rst7 frame_xray.rst7
 </pre>
 
-<br/>
+<pre style="color: white; background-color: black;">
+set near [atomselect top "same residue as (within 4 of (resid 500 501))"]
+lsort -unique -integer [$near get resid]
+</pre>
 
-<p align="justify">mol2_qmsel.sh reads the MOL2 file (the residue labels, such as ASP196, are RESNAME+RESID) and writes the same selection in the syntax of VMD, PyMOL and Amber masks, residue by residue. With -o the selections are also saved to files:</p>
+<p align="justify">Selections like this one take whole residues and cut them at their peptide bonds, so they have to be edited by hand into side chains (from C&beta; or C&gamma;) and whole sugars, following the guidelines above. Writing a long selection residue by residue, with atom names, is tedious; for this tutorial the 65-atom region is provided as a MOL2 file, hl_65atoms.mol2, and mol2_qmsel.sh converts it into the same selection in VMD, PyMOL and Amber mask syntax, residue by residue. The script expects the tab-separated MOL2 files written by PyMOL, with residue labels RESNAME+RESID (e.g. ASP196) taken from the topology numbering.</p>
 
 <pre style="color: white; background-color: black;">
 ./mol2_qmsel.sh -o qm_sel hl_65atoms.mol2
@@ -105,7 +114,21 @@ Selections written to qm_sel.vmd, qm_sel.pml and qm_sel.mask
 
 <br/>
 
-- <p align="justify">The VMD selection (qm_sel.vmd) is the input of the next section. The Amber mask works in ParmEd and cpptraj, e.g. to list the atoms (printDetails) or to sum their MM charges, which is not an integer, as discussed in Section IV:</p>
+- <p align="justify">Check the selection in the VMD session above before going on (65 atoms, and the region you intended):</p>
+
+<pre style="color: white; background-color: black;">
+set f [open qm_sel.vmd]; set qmsel [string trim [read $f]]; close $f
+set qm [atomselect top $qmsel]
+$qm num
+65
+mol selection $qmsel
+mol representation CPK 1.0 0.3
+mol addrep top
+</pre>
+
+<br/>
+
+- <p align="justify">The VMD selection (qm_sel.vmd) is the input of the next section. The Amber mask works in ParmEd and cpptraj, e.g. to sum the MM charges of the QM atoms, which is not an integer, as discussed in Section IV:</p>
 
 <pre style="color: white; background-color: black;">
 echo "netCharge $(cat qm_sel.mask)" | parmed -n amylase.prmtop

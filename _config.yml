@@ -1,5 +1,5 @@
 title: Tutorial for the Preparation of Enzyme QM/MM Systems for CP2K
-description: From a tleap topology to a steered QM/MM MD run in which bonds form and break (Amber/GLYCAM force fields, CP2K)
+description: From a tleap topology to a steered QM/MM MD run in which bonds form and break, and a Jarzynski work profile (Amber/GLYCAM force fields, CP2K)
 author: Alexandre V. Pinto
 lang: en
 image: /assets/img/CP2K_PREP_TUTORIAL.png
@@ -8,7 +8,7 @@ image: /assets/img/CP2K_PREP_TUTORIAL.png
 topic: QM/MM
 topic_color: "#ff5257"
 series: Part 1 of Enzyme QM/MM with CP2K
-tools: [AmberTools, ParmEd, PyMOL, VMD, CP2K]
+tools: [AmberTools, ParmEd, VMD, CP2K, Python]
 next_tutorial:
   title: Static QM/MM (TS searches with CI-NEB and the dimer method)
   url: https://arvpinto.github.io/enzyme_neb_cp2k/
@@ -50,3 +50,13 @@ repo_url: https://github.com/arvpinto/enzyme_qmmm_prep_cp2k
 # The pages use their own layout and stylesheet (no remote theme), matching the main site.
 plugins:
   - jekyll-seo-tag
+
+# Input files, outputs and scripts are linked from the pages on GitHub; they are not part of the site.
+exclude:
+  - system_prep
+  - mm_em
+  - qmmm_em
+  - qmmm_md_eq
+  - qmmm_md_smd
+  - scripts
+  - LICENSE

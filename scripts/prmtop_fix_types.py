@@ -38,9 +38,9 @@ but not renamed (unless --rename-unknown is given): give them a &KIND section
 with ELEMENT in the CP2K input, as in the inputs of the tutorial.
 
 Usage examples:
-    python3 prmtop_fix_types.py -p amylase_leap.prmtop --dry-run
-    python3 prmtop_fix_types.py -p amylase_leap.prmtop -o amylase.prmtop
-    python3 prmtop_fix_types.py -p amylase_leap.prmtop -o amylase.prmtop --map H1:HL Ho:HOL
+    python3 prmtop_fix_types.py -p amylase_prep.prmtop --dry-run
+    python3 prmtop_fix_types.py -p amylase_prep.prmtop -o amylase.prmtop
+    python3 prmtop_fix_types.py -p amylase_prep.prmtop -o amylase.prmtop --map H1:HL Ho:HOL
     python3 prmtop_fix_types.py -p amylase_ee.prmtop --dry-run     # check another topology
 """
 

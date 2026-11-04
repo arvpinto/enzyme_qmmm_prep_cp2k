@@ -6,10 +6,10 @@
 # Optionally labels distances (e.g. the atoms of a collective variable) to follow them in time.
 #
 # Usage:
-#   vmd -e vmd_cp2k-repr.tcl -args amylase_ee.prmtop SMD-NVT-EE-GPW-pos-1.dcd
+#   vmd -e vmd_cp2k-repr.tcl -args amylase_ee.prmtop QMMM_MD_SMD-pos-1.dcd
 #       -> the script asks for the QM selection (VMD syntax) in the terminal
-#   vmd -e vmd_cp2k-repr.tcl -args amylase_ee.prmtop REACT-NVT-EE-GPW-pos-1.dcd SMD-NVT-EE-GPW-pos-1.dcd \
-#       -qminc forceeval_qmmm.cp2k.inc -bonds "7699:7700 3607:7699 3026:7700"
+#   vmd -e vmd_cp2k-repr.tcl -args amylase_ee.prmtop QMMM_MD_SMD-pos-1.dcd \
+#       -qminc forceeval_qmmm.cp2k.inc -bonds "7699:7700 3607:7699 3026:7700" -cartoon
 #
 # Options (after -args; the .prmtop and the trajectory files can be given in any order):
 #   <file>.prmtop        Amber topology (required)
@@ -19,10 +19,11 @@
 #   -qminc <file>        take the QM layer from the &QM_KIND sections of a CP2K include/input file
 #   -bonds "i:j ..."     pairs of atom serial numbers (1-based, as in CP2K) to label as distances
 #   -step <n>            load every n-th frame (default 1)
+#   -cartoon             also show the protein as a cartoon (created hidden otherwise)
 #   -h                   print this help
 
 proc repr_usage {} {
-    puts "Usage: vmd -e vmd_cp2k-repr.tcl -args <prmtop> <traj.dcd> \[...\] \[-sel \"<sel>\" | -selfile <file> | -qminc <file>\] \[-bonds \"i:j ...\"\] \[-step n\]"
+    puts "Usage: vmd -e vmd_cp2k-repr.tcl -args <prmtop> <traj.dcd> \[...\] \[-sel \"<sel>\" | -selfile <file> | -qminc <file>\] \[-bonds \"i:j ...\"\] \[-step n\] \[-cartoon\]"
 }
 
 set topol ""
@@ -30,6 +31,7 @@ set trajs [list]
 set qm_str ""
 set bond_pairs [list]
 set step 1
+set show_cartoon 0
 for {set i 0} {$i < [llength $argv]} {incr i} {
     set opt [lindex $argv $i]
     switch -glob -- $opt {
@@ -54,6 +56,7 @@ for {set i 0} {$i < [llength $argv]} {incr i} {
         }
         -bonds   { incr i; set bond_pairs [lindex $argv $i] }
         -step    { incr i; set step [lindex $argv $i] }
+        -cartoon { set show_cartoon 1 }
         -h       { repr_usage; return }
         *.prmtop - *.parm7 { set topol $opt }
         -*       { puts "Unknown option $opt"; repr_usage; return }
@@ -131,13 +134,13 @@ mol representation VDW 0.2
 mol material AOChalky
 mol addrep $topid
 
-#protein cartoon, created hidden (switch it on in Graphics > Representations)
+#protein cartoon, hidden unless -cartoon is given (switch it on in Graphics > Representations)
 mol selection "protein and not resid $qm_resi"
 mol representation NewCartoon 0.3 10.0 4.1 0
 mol material AOChalky
 mol color ColorID 6
 mol addrep $topid
-mol showrep $topid [expr [molinfo $topid get numreps] - 1] 0
+if { !$show_cartoon } { mol showrep $topid [expr [molinfo $topid get numreps] - 1] 0 }
 
 set link_index [list]
 foreach id $heavyqm_index {
