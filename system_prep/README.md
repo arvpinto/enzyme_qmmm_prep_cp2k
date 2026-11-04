@@ -9,7 +9,7 @@ System preparation of the tutorial (Sections I to IV): the force field topology,
 | amylase_prep.prmtop, frame_xray.rst7 | `tleap -f leap_amyl.in` | topology and coordinates from tleap |
 | amylase.prmtop | `python3 prmtop_fix_types.py -p amylase_prep.prmtop -o amylase.prmtop` | MM minimization and mechanical embedding QM/MM |
 | type_renaming.dat | prmtop_fix_types.py | list of the atom types renamed for CP2K |
-| hl_65atoms.mol2 | QM region (65 atoms) saved from VMD | `./mol2_qmsel.sh -o qm_sel hl_65atoms.mol2` |
+| hl_65atoms.mol2 | QM region (65 atoms), also shown in the 3D viewer of Section II | `./mol2_qmsel.sh -o qm_sel hl_65atoms.mol2` |
 | qm_sel.vmd, qm_sel.mask, qm_sel.pml | mol2_qmsel.sh | QM selection for VMD, ParmEd (`netCharge`) and PyMOL |
 | forceeval_subsys.cp2k.inc | vmd_cp2k-qmmm.tcl | &CELL of the system (MM minimization) |
 | forceeval_qmmm.cp2k.inc | vmd_cp2k-qmmm.tcl | &CELL, &QM_KIND and &LINK sections of the QM/MM runs |
