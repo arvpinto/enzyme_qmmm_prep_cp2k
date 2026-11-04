@@ -536,6 +536,18 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .footer-inner a:hover { color: var(--ink); }
 .brand--small { font-weight: 600; color: var(--ink); }
 
+/* Movies of the QM region (Sections V to VII) */
+.qm-movie { margin: 8px auto 0.6em; max-width: 640px; }
+.qm-movie video {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 3;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface);
+}
+
 /* ---------------------------------------------------------------- 3D viewer of the QM region (Section II) */
 .qm-viewer {
   margin: 1.5rem 0 0.5rem;
