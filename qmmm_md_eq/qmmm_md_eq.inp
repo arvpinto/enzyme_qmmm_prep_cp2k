@@ -1,5 +1,5 @@
 ! qmmm_md_eq.inp - QM/MM MD (NVT, 300 K, 2 ps) of the reactant, electrostatic embedding, tutorial Section VII
-! Needs: amylase_ee.prmtop, forceeval_qmmm.cp2k.inc (from system_prep/), QMMM_EM_EE-1.restart, QMMM_EM_EE-RESTART.wfn (from qmmm_em/)
+! Needs (in the working directory): amylase_ee.prmtop, forceeval_qmmm.cp2k.inc (copies in system_prep/), QMMM_EM_EE-1.restart, QMMM_EM_EE-RESTART.wfn (from qmmm_em_ee.inp)
 ! Writes: QMMM_MD_EQ-1.restart(.bin), QMMM_MD_EQ-RESTART.wfn (read by qmmm_md_smd.inp), QMMM_MD_EQ-pos-1.dcd, QMMM_MD_EQ-1.ener
 @SET PARM amylase_ee.prmtop
 &GLOBAL

@@ -11,13 +11,16 @@ Steered QM/MM MD along CV = d(O4-C1) - d(HE2(Glu232)-O4), from -2 to +2 angstrom
 | QMMM_MD_SMD-1.restart, QMMM_MD_SMD-1.restart.bin, QMMM_MD_SMD-RESTART.wfn | final state (glycosyl-enzyme intermediate) |
 | smd_jarzynski.dat, smd_jarzynski.png | work profile from smd_jarzynski.py |
 
-Needs: ../system_prep/amylase_ee.prmtop, ../system_prep/forceeval_qmmm.cp2k.inc, ../qmmm_md_eq/QMMM_MD_EQ-1.restart, ../qmmm_md_eq/QMMM_MD_EQ-1.restart.bin, ../qmmm_md_eq/QMMM_MD_EQ-RESTART.wfn
+Reads: amylase_ee.prmtop and forceeval_qmmm.cp2k.inc (Sections III and IV; also in ../system_prep), and QMMM_MD_EQ-1.restart, QMMM_MD_EQ-1.restart.bin and QMMM_MD_EQ-RESTART.wfn (Section VII).
+
+In the tutorial every CP2K run is done in the same working directory (Section I), where all these files are, with a copy of the input:
 
 ```
-cp ../system_prep/{amylase_ee.prmtop,forceeval_qmmm.cp2k.inc} .
-cp ../qmmm_md_eq/{QMMM_MD_EQ-1.restart,QMMM_MD_EQ-1.restart.bin,QMMM_MD_EQ-RESTART.wfn} .
-mpirun -np 128 cp2k.psmp -i qmmm_md_smd.inp -o qmmm_md_smd.out
-python3 ../scripts/smd_jarzynski.py -l QMMM_MD_SMD-COLVAR.metadynLog -o qmmm_md_smd.out
+cp ../enzyme_qmmm_prep_cp2k/qmmm_md_smd/qmmm_md_smd.inp .
+cp2k.psmp -i qmmm_md_smd.inp -o qmmm_md_smd.out
+python3 smd_jarzynski.py -l QMMM_MD_SMD-COLVAR.metadynLog -o qmmm_md_smd.out
 ```
+
+For a parallel run, put the MPI launcher in front of cp2k.psmp (e.g. `mpirun -np 128 cp2k.psmp ...`).
 
 The trajectory, QMMM_MD_SMD-pos-1.dcd, is attached to the [latest release](https://github.com/arvpinto/enzyme_qmmm_prep_cp2k/releases/latest).

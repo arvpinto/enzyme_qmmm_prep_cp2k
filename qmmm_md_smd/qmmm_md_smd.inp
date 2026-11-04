@@ -1,5 +1,5 @@
 ! qmmm_md_smd.inp - steered QM/MM MD (NVT, 300 K, 2 ps) along the glycosylation CV, tutorial Section VIII
-! Needs: amylase_ee.prmtop, forceeval_qmmm.cp2k.inc (from system_prep/), QMMM_MD_EQ-1.restart(.bin), QMMM_MD_EQ-RESTART.wfn (from qmmm_md_eq/)
+! Needs (in the working directory): amylase_ee.prmtop, forceeval_qmmm.cp2k.inc (copies in system_prep/), QMMM_MD_EQ-1.restart(.bin), QMMM_MD_EQ-RESTART.wfn (from qmmm_md_eq.inp)
 ! Writes: QMMM_MD_SMD-COLVAR.metadynLog, QMMM_MD_SMD-pos-1.dcd, QMMM_MD_SMD-1.ener
 @SET PARM amylase_ee.prmtop
 &GLOBAL
