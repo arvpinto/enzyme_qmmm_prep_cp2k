@@ -536,6 +536,56 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .footer-inner a:hover { color: var(--ink); }
 .brand--small { font-weight: 600; color: var(--ink); }
 
+/* ---------------------------------------------------------------- 3D viewer of the QM region (Section II) */
+.qm-viewer {
+  margin: 1.5rem 0 0.5rem;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface);
+  overflow: hidden;
+}
+.qm-viewer__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 10px;
+  border-bottom: 1px solid var(--line);
+}
+.qm-viewer__toolbar button {
+  min-height: 32px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--ink-2);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+}
+.qm-viewer__toolbar button:hover { color: var(--ink); border-color: var(--ink-2); }
+.qm-viewer__toolbar button[aria-pressed="true"] {
+  background: var(--surface-2);
+  border-color: var(--accent);
+  color: var(--ink);
+}
+.qm-viewer__toolbar .qm-viewer__key { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 6px; vertical-align: 0; }
+.qm-viewer__stage {
+  position: relative;
+  width: 100%;
+  height: clamp(320px, 62vh, 540px);
+  touch-action: none;
+}
+.qm-viewer__stage--static { height: auto; padding: 16px; text-align: center; touch-action: auto; }
+.qm-viewer__stage--static img { max-width: min(100%, 520px); height: auto; }
+.qm-viewer__info {
+  margin: 0;
+  padding: 10px 14px;
+  min-height: 2.6em;
+  border-top: 1px solid var(--line);
+  font-size: 0.875rem;
+  color: var(--ink-2);
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition: none !important; animation: none !important; scroll-behavior: auto !important; }
 }

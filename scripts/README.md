@@ -9,3 +9,4 @@
 | cp2k_funcs | [V](https://arvpinto.github.io/enzyme_qmmm_prep_cp2k/enzyme_qmmm_prep_V.html) to [VIII](https://arvpinto.github.io/enzyme_qmmm_prep_cp2k/enzyme_qmmm_prep_VIII.html) | bash functions to inspect CP2K outputs (`source cp2k_funcs; cp2k_help`) |
 | vmd_cp2k-repr.tcl | [V](https://arvpinto.github.io/enzyme_qmmm_prep_cp2k/enzyme_qmmm_prep_V.html) to [VIII](https://arvpinto.github.io/enzyme_qmmm_prep_cp2k/enzyme_qmmm_prep_VIII.html) | loads a topology and CP2K DCD trajectories and draws the QM region with dynamic bonds and distance labels |
 | smd_jarzynski.py | [VIII](https://arvpinto.github.io/enzyme_qmmm_prep_cp2k/enzyme_qmmm_prep_VIII.html) | work and Jarzynski free energy profile from steered MD metadynLog files (`-h` for options) |
+| plot_smd.py | [VIII](https://arvpinto.github.io/enzyme_qmmm_prep_cp2k/enzyme_qmmm_prep_VIII.html) | CV, work and (with the DCD) selected distances of a steered MD run against time (`-h` for options) |
