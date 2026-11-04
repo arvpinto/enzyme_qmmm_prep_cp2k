@@ -58,6 +58,7 @@
 | <a href="https://github.com/arvpinto/enzyme_qmmm_prep_cp2k/blob/main/scripts/cp2k_funcs" target="_blank">cp2k_funcs</a> | Bash functions to read CP2K outputs (optimization convergence, MD energies, QM temperature, CV, QM atom serials) |
 | <a href="https://github.com/arvpinto/enzyme_qmmm_prep_cp2k/blob/main/scripts/vmd_cp2k-repr.tcl" target="_blank">vmd_cp2k-repr.tcl</a> | VMD script that loads CP2K trajectories and draws the QM region with dynamic bonds |
 | <a href="https://github.com/arvpinto/enzyme_qmmm_prep_cp2k/blob/main/scripts/smd_jarzynski.py" target="_blank">smd_jarzynski.py</a> | Work and Jarzynski free energy profile from one or more steered MD runs |
+| <a href="https://github.com/arvpinto/enzyme_qmmm_prep_cp2k/blob/main/scripts/plot_smd.py" target="_blank">plot_smd.py</a> | CV, work and selected distances of a steered MD run against time |
 
 <br>
 

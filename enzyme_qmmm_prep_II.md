@@ -37,11 +37,22 @@ amylase.prmtop + frame_xray.rst7  ->  QM region in VMD (hl_65atoms.mol2)  ->  mo
 
 <br/>
 
-<div align="center">
-    <img src="assets/img/qm_region.png" width="45%">
+<div class="qm-viewer" data-mol2="https://raw.githubusercontent.com/arvpinto/enzyme_qmmm_prep_cp2k/main/system_prep/hl_65atoms.mol2" data-fallback="assets/img/qm_region.png">
+  <div class="qm-viewer__toolbar" role="toolbar" aria-label="Viewer options">
+    <button type="button" data-toggle="labels">Residue labels</button>
+    <button type="button" data-toggle="distances"><span class="qm-viewer__key" style="background:#f2d24b"></span>Distances</button>
+    <button type="button" data-toggle="boundary"><span class="qm-viewer__key" style="background:#ff9d42"></span>QM/MM boundary</button>
+    <button type="button" data-toggle="hydrogens">Hydrogens</button>
+    <button type="button" data-toggle="spin">Spin</button>
+    <button type="button" data-action="reset">Reset view</button>
+  </div>
+  <div class="qm-viewer__stage"></div>
+  <p class="qm-viewer__info" aria-live="polite">Drag to rotate, scroll or pinch to zoom; point at (or tap) an atom for its name, residue and serial number.</p>
 </div>
+<script src="https://cdn.jsdelivr.net/npm/3dmol@2.5.4/build/3Dmol-min.js"></script>
+<script src="assets/js/qm_viewer.js"></script>
 
-<p align="center"><i>QM region in the starting structure. Orange: MM atoms bonded to the QM region; yellow: Asp196 OD1-C1 (3.1 &Aring;) and Glu232 HE2-O4 (2.0 &Aring;).</i></p>
+<p align="center"><i>The 65 atoms of hl_65atoms.mol2 in the starting structure (frame_xray.pdb). Orange: the five bonds cut by the boundary and the MM atoms at their other end (CP2K caps each cut bond with a hydrogen atom placed along it); yellow: Asp196 OD1-C1 (3.1 &Aring;) and Glu232 HE2-O4 (2.0 &Aring;).</i></p>
 
 <br/>
 
