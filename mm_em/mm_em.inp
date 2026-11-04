@@ -1,0 +1,103 @@
+! mm_em.inp - MM minimization of the whole system (FIST), tutorial Section V
+! Needs: amylase.prmtop, frame_xray.rst7, forceeval_subsys.cp2k.inc (from system_prep/)
+! Writes: MM_EM-1.restart (read by qmmm_em/qmmm_em_me.inp), MM_EM-pos-1.dcd
+@SET PARM amylase.prmtop
+@SET COORD frame_xray.rst7
+&GLOBAL
+  PROJECT MM_EM
+  PRINT_LEVEL LOW
+  RUN_TYPE GEO_OPT
+&END GLOBAL
+
+&FORCE_EVAL
+  METHOD FIST
+  STRESS_TENSOR ANALYTICAL
+  &MM
+    &FORCEFIELD
+      DO_NONBONDED
+      EI_SCALE14 0.8333333
+      IGNORE_MISSING_CRITICAL_PARAMS FALSE
+      PARMTYPE AMBER
+      PARM_FILE_NAME $PARM
+      SHIFT_CUTOFF TRUE
+      VDW_SCALE14 0.5
+      &SPLINE
+        EMAX_SPLINE 1.0E8
+        RCUT_NB [angstrom] 10
+      &END SPLINE
+    &END FORCEFIELD
+    &NEIGHBOR_LISTS
+      GEO_CHECK
+      NEIGHBOR_LISTS_FROM_SCRATCH
+      VERLET_SKIN 1.0
+    &END NEIGHBOR_LISTS
+    &POISSON
+      PERIODIC XYZ
+      POISSON_SOLVER PERIODIC
+      &EWALD
+        ALPHA .40
+        EPSILON 1.0E-6
+        EWALD_ACCURACY 1.0E-6
+        EWALD_TYPE SPME
+        GMAX 80
+        NS_MAX 11
+        O_SPLINE 6
+        RCUT 10.0
+      &END EWALD
+    &END POISSON
+  &END MM
+  &RESCALE_FORCES
+    MAX_FORCE 4.21648784E-2
+  &END RESCALE_FORCES
+  &SUBSYS
+    @INCLUDE forceeval_subsys.cp2k.inc
+    &TOPOLOGY
+      AUTOGEN_EXCLUDE_LISTS FALSE
+      CONN_FILE_FORMAT AMBER
+      CONN_FILE_NAME $PARM
+      COORD_FILE_FORMAT CRD
+      COORD_FILE_NAME $COORD
+      DISABLE_EXCLUSION_LISTS FALSE
+      EXCLUDE_EI 1-3
+      EXCLUDE_VDW 1-3
+      MOL_CHECK
+    &END TOPOLOGY
+    &KIND NA+
+     ELEMENT Na
+    &END KIND
+    &KIND CL-
+     ELEMENT Cl
+    &END KIND
+  &END SUBSYS
+&END FORCE_EVAL
+
+&MOTION
+  &GEO_OPT
+    MAX_DR    1.0E-02 ! Default value: 3.00000000E-003
+    MAX_FORCE 1.0E-02 ! Default value: 4.50000000E-004
+    MAX_ITER 1000
+    OPTIMIZER LBFGS
+    RMS_DR    5.0E-03 ! Default value: 1.50000000E-003
+    RMS_FORCE 5.0E-03 ! Default value: 3.00000000E-004
+    TYPE MINIMIZATION
+  &END GEO_OPT
+  &PRINT
+    &TRAJECTORY                                 ! Controls the output of the trajectory
+      FORMAT DCD                                ! Format of the output trajectory (PROJECT-pos-1.dcd)
+      ADD_LAST NUMERIC                          ! Last frame printed at the end of the calculation
+      &EACH                                     ! How often a frame is written
+	    GEO_OPT 100
+      &END EACH
+    &END TRAJECTORY
+    &RESTART                                    ! This section controls the printing of restart files
+      &EACH                                     ! How often the restart file is written
+        GEO_OPT 500
+      &END EACH
+    &END RESTART
+    &RESTART_HISTORY                            ! Numbered copies of the restart file, kept during the run
+      &EACH                                     ! How often a numbered copy is written
+        GEO_OPT 500
+      &END EACH
+    &END RESTART_HISTORY
+  &END PRINT
+&END MOTION
