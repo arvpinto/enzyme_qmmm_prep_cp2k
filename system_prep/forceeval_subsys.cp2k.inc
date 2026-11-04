@@ -1,0 +1,6 @@
+! CP2K > FORCE_EVAL > SUBSYS > CELL
+&CELL
+  ABC [angstrom] 90.757912  103.275749  91.248329     !size of cell
+  ALPHA_BETA_GAMMA 90.000000 90.000000 90.000000      !shape of cell
+&END CELL
+

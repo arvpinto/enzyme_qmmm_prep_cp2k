@@ -1,0 +1,13 @@
+# prmtop_fix_types.py v2.0: amylase_prep.prmtop -> amylase.prmtop
+# old new element atoms
+N3 NT N 23
+H1 HZ H 828
+C8 CZ C 172
+N2 NL N 84
+H5 HN H 11
+H4 HL H 28
+O2 OA O 106
+H2 HR H 5
+Oh OD O 17
+Ho HT H 17
+C0 CAL Ca 1

@@ -1,0 +1,22 @@
+# leap_amyl.in - Amber topology and coordinates of the alpha-amylase/oligosaccharide model
+# Usage: tleap -f leap_amyl.in > leap_amyl.log
+source leaprc.protein.ff14SB
+source leaprc.GLYCAM_06j-1
+source leaprc.water.tip3p
+
+amyl = loadpdb frame_xray.pdb
+
+bond amyl.27.SG amyl.85.SG
+bond amyl.69.SG amyl.114.SG
+bond amyl.140.SG amyl.159.SG
+bond amyl.377.SG amyl.383.SG
+bond amyl.449.SG amyl.461.SG
+
+alignaxes amyl
+
+setBox amyl vdw {0.0 0.0 0.0}
+
+# the atom types are checked/renamed for CP2K afterwards (prmtop_fix_types.py -> amylase.prmtop)
+saveamberparm amyl amylase_prep.prmtop frame_xray.rst7
+
+quit
