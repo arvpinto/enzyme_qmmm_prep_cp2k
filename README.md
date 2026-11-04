@@ -3,6 +3,12 @@
 
 <p align="justify">Most of the information here came from the <a href="https://www.cp2k.org/" target="_blank">CP2K site</a>, the <a href="https://manual.cp2k.org/" target="_blank">CP2K manual</a>, the <a href="https://ambermd.org/tutorials/" target="_blank">Amber tutorials</a>, the <a href="https://groups.google.com/g/cp2k" target="_blank">CP2K discussion group</a> and the BioExcel QM/MM material listed at the bottom of this page. You should also follow the good practices found in the literature for the specific chemistry of your system.</p>
 
+<p align="justify">The tutorial is based on the work of Rui Neves <i>et al.</i> on the reaction mechanism of human pancreatic &alpha;-amylase:</p>
+
+- <p align="justify">Towards the Accurate Thermodynamic Characterization of Enzyme Reaction Mechanisms. <i>ChemPhysChem</i> <b>2022</b>, 23, e202200159. <a href="https://doi.org/10.1002/cphc.202200159" target="_blank">doi:10.1002/cphc.202200159</a></p>
+- <p align="justify">Role of Enzyme and Active Site Conformational Dynamics in the Catalysis by &alpha;-Amylase Explored with QM/MM Molecular Dynamics. <i>J. Chem. Inf. Model.</i> <b>2022</b>, 62, 3638-3650. <a href="https://doi.org/10.1021/acs.jcim.2c00691" target="_blank">doi:10.1021/acs.jcim.2c00691</a></p>
+- <p align="justify">How and When Does an Enzyme React? Unraveling &alpha;-Amylase Catalytic Activity with Enhanced Sampling Techniques. <i>ACS Catal.</i> <b>2023</b>, 13, 8092. <a href="https://doi.org/10.1021/acscatal.3c01473" target="_blank">doi:10.1021/acscatal.3c01473</a></p>
+
 <br>
 
 <div align="center">
@@ -41,9 +47,9 @@
 | Directory | Content |
 | :--- | :--- |
 | <a href="https://github.com/arvpinto/enzyme_qmmm_prep_cp2k/tree/main/system_prep" target="_blank">system_prep</a> | Sections I to IV: frame_xray.pdb, leap_amyl.in, the three topologies (amylase_prep, amylase, amylase_ee), frame_xray.rst7, the QM selection and the CP2K include files |
-| <a href="https://github.com/arvpinto/enzyme_qmmm_prep_cp2k/tree/main/mm_em" target="_blank">mm_em</a> | Section V: MM minimization (mm_em.inp, mm_em.out, MM_EM-1.restart) |
-| <a href="https://github.com/arvpinto/enzyme_qmmm_prep_cp2k/tree/main/qmmm_em" target="_blank">qmmm_em</a> | Section VI: QM/MM minimizations with mechanical (qmmm_em_me) and electrostatic (qmmm_em_ee) embedding |
-| <a href="https://github.com/arvpinto/enzyme_qmmm_prep_cp2k/tree/main/qmmm_md_eq" target="_blank">qmmm_md_eq</a> | Section VII: QM/MM MD at 300 K (qmmm_md_eq) |
+| <a href="https://github.com/arvpinto/enzyme_qmmm_prep_cp2k/tree/main/mm_em" target="_blank">mm_em</a> | Section V: MM minimization (mm_em.inp, mm_em.out, MM_EM-1.restart) and its energy plot |
+| <a href="https://github.com/arvpinto/enzyme_qmmm_prep_cp2k/tree/main/qmmm_em" target="_blank">qmmm_em</a> | Section VI: QM/MM minimizations with mechanical (qmmm_em_me) and electrostatic (qmmm_em_ee) embedding, and their energy plot |
+| <a href="https://github.com/arvpinto/enzyme_qmmm_prep_cp2k/tree/main/qmmm_md_eq" target="_blank">qmmm_md_eq</a> | Section VII: QM/MM MD at 300 K (qmmm_md_eq) and its temperature plot |
 | <a href="https://github.com/arvpinto/enzyme_qmmm_prep_cp2k/tree/main/qmmm_md_smd" target="_blank">qmmm_md_smd</a> | Section VIII: steered QM/MM MD (qmmm_md_smd) and its Jarzynski analysis |
 | <a href="https://github.com/arvpinto/enzyme_qmmm_prep_cp2k/tree/main/scripts" target="_blank">scripts</a> | The scripts below |
 

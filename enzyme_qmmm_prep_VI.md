@@ -262,6 +262,6 @@ vmd -e vmd_cp2k-repr.tcl -args amylase_ee.prmtop QMMM_EM_ME-pos-1.dcd QMMM_EM_EE
     -qminc forceeval_qmmm.cp2k.inc -bonds "7699:7700 3607:7699 3026:7700"
 </pre>
 
-<p align="justify">Look at the capping atoms (the CPK atoms at the five QM/MM bonds), the hydrogen bonds of Asp299 with the O2 and O3 hydroxyls of the -1 sugar, the water of the QM region and the rotation of the Glu232 carboxylic group. The topology only gives VMD the atom names and bonds, so amylase.prmtop and amylase_ee.prmtop are interchangeable here.</p>
+<p align="justify">Look at the atoms at both ends of the five QM/MM bonds (drawn as CPK by vmd_cp2k-repr.tcl), the hydrogen bonds of Asp299 with the O2 and O3 hydroxyls of the -1 sugar, the water of the QM region and the rotation of the Glu232 carboxylic group. The topology only gives VMD the atom names and bonds, so amylase.prmtop and amylase_ee.prmtop are interchangeable here.</p>
 
 <br/>
