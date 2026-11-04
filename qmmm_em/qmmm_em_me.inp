@@ -1,5 +1,5 @@
 ! qmmm_em_me.inp - QM/MM minimization with mechanical embedding (PBE/DZVP, GPW), tutorial Section VI
-! Needs: amylase.prmtop, forceeval_qmmm.cp2k.inc (from system_prep/), MM_EM-1.restart (from mm_em/)
+! Needs (in the working directory): amylase.prmtop, forceeval_qmmm.cp2k.inc (copies in system_prep/), MM_EM-1.restart (from mm_em.inp)
 ! Writes: QMMM_EM_ME-1.restart and QMMM_EM_ME-RESTART.wfn (read by qmmm_em_ee.inp), QMMM_EM_ME-pos-1.dcd
 @SET PARM amylase.prmtop
 &GLOBAL

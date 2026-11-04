@@ -1,6 +1,6 @@
 ! qmmm_em_ee.inp - QM/MM minimization with electrostatic embedding (PBE/DZVP, GPW, GEEP), tutorial Section VI
-! Needs: amylase_ee.prmtop, forceeval_qmmm.cp2k.inc (from system_prep/), QMMM_EM_ME-1.restart, QMMM_EM_ME-RESTART.wfn
-! Writes: QMMM_EM_EE-1.restart and QMMM_EM_EE-RESTART.wfn (read by qmmm_md_eq/qmmm_md_eq.inp), QMMM_EM_EE-pos-1.dcd
+! Needs (in the working directory): amylase_ee.prmtop, forceeval_qmmm.cp2k.inc (copies in system_prep/), QMMM_EM_ME-1.restart, QMMM_EM_ME-RESTART.wfn (from qmmm_em_me.inp)
+! Writes: QMMM_EM_EE-1.restart and QMMM_EM_EE-RESTART.wfn (read by qmmm_md_eq.inp), QMMM_EM_EE-pos-1.dcd
 @SET PARM amylase_ee.prmtop
 &GLOBAL
   ECHO_INPUT

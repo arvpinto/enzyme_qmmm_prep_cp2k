@@ -1,6 +1,6 @@
 ! mm_em.inp - MM minimization of the whole system (FIST), tutorial Section V
-! Needs: amylase.prmtop, frame_xray.rst7, forceeval_subsys.cp2k.inc (from system_prep/)
-! Writes: MM_EM-1.restart (read by qmmm_em/qmmm_em_me.inp), MM_EM-pos-1.dcd
+! Needs (in the working directory): amylase.prmtop, frame_xray.rst7, forceeval_subsys.cp2k.inc (Sections I to III; copies in system_prep/)
+! Writes: MM_EM-1.restart (read by qmmm_em_me.inp), MM_EM-pos-1.dcd
 @SET PARM amylase.prmtop
 @SET COORD frame_xray.rst7
 &GLOBAL
