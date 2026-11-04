@@ -138,6 +138,14 @@ tail -1 qmmm_md_eq.eqmmm.csv
 
 <br/>
 
+<div class="qm-movie">
+  <video src="assets/movies/qmmm_md_eq_qm.mp4" autoplay loop muted playsinline controls preload="metadata" aria-label="QM region during the QM/MM MD at 300 K"></video>
+</div>
+
+<p align="center"><i>The QM region along the 2 ps of QM/MM MD (QMMM_MD_EQ-pos-1.dcd, one frame every 5 fs), smoothed with a moving average over 5 frames (25 fs), with the same view and dashes as in Sections V and VI.</i></p>
+
+<br/>
+
 <p align="justify">Download QMMM_MD_EQ-pos-1.dcd from the <a href="https://github.com/arvpinto/enzyme_qmmm_prep_cp2k/releases/latest" target="_blank">latest release</a> into qmmm_md_eq and play it with the QM region drawn with dynamic bonds:</p>
 
 <pre style="color: white; background-color: black;">

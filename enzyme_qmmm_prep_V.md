@@ -171,6 +171,14 @@ cp2k_opt mm_em.out | tail -6
 
 <br/>
 
+<div class="qm-movie">
+  <video src="assets/movies/mm_em_qm.mp4" autoplay loop muted playsinline controls preload="metadata" aria-label="QM region during the MM minimization"></video>
+</div>
+
+<p align="center"><i>The QM region during the MM minimization, from the starting structure (frame_xray.pdb) to the minimized one (MM_EM-1.restart). Yellow dashes: Asp196 OD1-C1 and Glu232 HE2-O4. The run writes few frames, so they are joined by cubic interpolation and the motion between them is only illustrative.</i></p>
+
+<br/>
+
 <p align="justify">The trajectories of the example are attached to the <a href="https://github.com/arvpinto/enzyme_qmmm_prep_cp2k/releases/latest" target="_blank">latest release</a> of the repository. Download MM_EM-pos-1.dcd into mm_em and load it with the topology:</p>
 
 <pre style="color: white; background-color: black;">

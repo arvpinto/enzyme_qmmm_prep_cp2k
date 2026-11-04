@@ -234,6 +234,14 @@ cp2k_opt qmmm_em_ee.out | tail -6
 
 <br/>
 
+<div class="qm-movie">
+  <video src="assets/movies/qmmm_em_qm.mp4" autoplay loop muted playsinline controls preload="metadata" aria-label="QM region during the QM/MM minimizations"></video>
+</div>
+
+<p align="center"><i>The QM region along the mechanical embedding minimization (QMMM_EM_ME) followed by the electrostatic embedding one (QMMM_EM_EE), with the same view and dashes as in Section V. Consecutive frames are joined by cubic interpolation.</i></p>
+
+<br/>
+
 <p align="justify">Both minimizations write a frame at every optimization step. Download QMMM_EM_ME-pos-1.dcd and QMMM_EM_EE-pos-1.dcd from the <a href="https://github.com/arvpinto/enzyme_qmmm_prep_cp2k/releases/latest" target="_blank">latest release</a> into qmmm_em and load them one after the other on the topology, with the QM region drawn by vmd_cp2k-repr.tcl. The labels follow the three distances of the table above:</p>
 
 <pre style="color: white; background-color: black;">

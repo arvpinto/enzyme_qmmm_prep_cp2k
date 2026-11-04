@@ -201,57 +201,6 @@ vmd -e ../scripts/vmd_cp2k-repr.tcl -args ../system_prep/amylase_ee.prmtop QMMM_
 
 <br/>
 
-<h3> <p align="center"><b> Following the pull in time </b></p> </h3>
-
-<br/>
-
-<p align="justify">plot_smd.py puts on a common time axis what you see in VMD: the CV and the restraint centre, the work done by the restraint and, if the trajectory is given, the distances of your choice. Read the panels next to the animation (the DCD has one frame every 5 fs, so t = 0.72 ps, the first maximum of the work, is around frame 144) to see what the system is doing when the work rises or drops. The restraint parameters, the time step and the trajectory stride are read from the input echo in qmmm_md_smd.out:</p>
-
-<pre style="color: white; background-color: black;">
-python3 ../scripts/plot_smd.py -h
-python3 ../scripts/plot_smd.py -l QMMM_MD_SMD-COLVAR.metadynLog -o qmmm_md_smd.out
-</pre>
-
-<pre style="color: white; background-color: black;">
-Restraint: TARGET -2.000 Å, TARGET_LIMIT 2.000 Å, K 100.00 kcal/mol/Å^2 (U = K (s-lambda)^2), speed 2.000 Å/ps; time step 1 fs
-QMMM_MD_SMD-COLVAR.metadynLog: 201 points, t = 0.0 to 2000.0 fs
-  CV     start   -2.253  end    1.957  min   -2.253  max    1.974 Å
-  |CV - lambda|  mean 0.066 Å, max 0.253 Å at t = 0.0 fs
-  work   end    26.09 kcal/mol
-  work   local max    15.19 kcal/mol at t =   720.0 fs, lambda =  -0.56 Å
-  work   local min    11.71 kcal/mol at t =   990.0 fs, lambda =  -0.02 Å
-  work   local max    12.72 kcal/mol at t =  1040.0 fs, lambda =   0.08 Å
-  work   local min    10.94 kcal/mol at t =  1210.0 fs, lambda =   0.42 Å
-wrote plot_smd.dat
-wrote plot_smd.png (600 dpi)
-</pre>
-
-<br/>
-
-<div align="center">
-    <img src="assets/img/plot_smd.png" width="80%">
-</div>
-
-<br/>
-
-- <p align="justify">The work is integrated as in smd_jarzynski.py (trapezoidal rule on the COLVAR points), so both scripts give the same numbers. The local maxima and minima are the points that are the highest or lowest within &plusmn;150 fs (--window).</p>
-
-- <p align="justify">With the trajectory, the distances of the table above are added as a third panel. The pairs use the serial numbers of the -bonds option of vmd_cp2k-repr.tcl, and their values in every frame are written to plot_smd_dist.dat:</p>
-
-<pre style="color: white; background-color: black;">
-python3 ../scripts/plot_smd.py -l QMMM_MD_SMD-COLVAR.metadynLog -o qmmm_md_smd.out \
-    --dcd QMMM_MD_SMD-pos-1.dcd --pairs "7699:7700 3607:7699 3026:7700 3607:7783 7785:7699" \
-    --pair-labels "O4-C1,HE2-O4,OD1-C1,HE2-Ow,H2w-O4"
-</pre>
-
-<p align="justify">This panel shows the order of the events directly: when the glycosidic bond breaks, when OD1 reaches C1, and when each proton of the relay moves.</p>
-
-<br/>
-
----
-
-<br/>
-
 <h3> <p align="center"><b> Work and free energy: the Jarzynski equality </b></p> </h3>
 
 <br/>
