@@ -171,7 +171,7 @@ vmd -e vmd_cp2k-repr.tcl -args amylase_ee.prmtop QMMM_MD_SMD-pos-1.dcd \
 <br/>
 
 <div class="qm-movie">
-  <video src="assets/movies/qmmm_md_smd.mp4" autoplay loop muted playsinline controls preload="metadata" aria-label="QM region during the QM/MM MD at 300 K"></video>
+  <video src="assets/movies/qmmm_md_smd.mp4" autoplay loop muted playsinline controls preload="metadata" aria-label="QM region during the stered QM/MM MD at 300 K"></video>
 </div>
 
 <br/>
