@@ -170,6 +170,12 @@ vmd -e vmd_cp2k-repr.tcl -args amylase_ee.prmtop QMMM_MD_SMD-pos-1.dcd \
 
 <br/>
 
+<div class="qm-movie">
+  <video src="assets/movies/qmmm_md_eq_qm.mp4" autoplay loop muted playsinline controls preload="metadata" aria-label="QM region during the QM/MM MD at 300 K"></video>
+</div>
+
+<br/>
+
 | Label | Distance | Start of the pull | End of the pull |
 | :--- | :--- | ---: | ---: |
 | 7699:7700 | O4(500)-C1(501), glycosidic bond | 1.48 &Aring; | 4.74 &Aring; |
