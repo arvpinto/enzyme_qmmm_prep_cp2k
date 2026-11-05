@@ -135,7 +135,7 @@
       COLVAR 1
       INTERMOLECULAR TRUE
       TARGET [angstrom] -2.          ! value at t=0; set it close to the CV at the end of the NVT run
-      TARGET_GROWTH [angstrom*fs^-1] .00075  ! STEPS = (TARGET_LIMIT - TARGET)/TARGET_GROWTH/TIMESTEP
+      TARGET_GROWTH [angstrom*fs^-1] .002  ! STEPS = (TARGET_LIMIT - TARGET)/TARGET_GROWTH/TIMESTEP
       TARGET_LIMIT [angstrom] 2.
       &RESTRAINT
         K [angstrom^-2*kcalmol] 100.0  ! restraint energy K*(CV-TARGET)^2
@@ -154,7 +154,7 @@
         &COLVAR
           COMMON_ITERATION_LEVELS 3
           &EACH
-            MD 1
+            MD 10
           &END EACH
         &END COLVAR
       &END PRINT
@@ -163,7 +163,7 @@
   &MD
     ENSEMBLE NVT
     MAX_STEPS 10000
-    STEPS 5000
+    STEPS 2000
     STEP_START_VAL 0
     TEMPERATURE 300.0
     TEMP_KIND FALSE
