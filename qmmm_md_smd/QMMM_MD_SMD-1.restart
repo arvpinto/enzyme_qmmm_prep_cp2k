@@ -1,6 +1,6 @@
  # Version information for this restart file 
- # current date 2026-11-03 22:40:53.821
- # current working dir /projects/F202500056CPCAA3/AP/cp2k_tutorial/qmmm_md_smd
+ # current date 2026-11-05 02:00:17.709
+ # current working dir /projects/F202500056CPCAA3/AP/cp2k_tutorial/qmmm_md_smd_new
  # Program compiled at                              Fri 5 Sep 11:56:54 WEST 2025
  # Program compiled on                                                    cnx002
  # Program compiled for                                        Linux-x86-64-foss
@@ -15,11 +15,11 @@
  &MOTION
    &MD
      ENSEMBLE  NVT
-     STEPS  2000
+     STEPS  5000
      MAX_STEPS  10000
      TIMESTEP     9.9999999999999989E-01
-     STEP_START_VAL  2000
-     TIME_START_VAL     1.9999999999999645E+03
+     STEP_START_VAL  5000
+     TIME_START_VAL     4.9999999999995716E+03
      ECONS_START_VAL    -7.4310974624057849E+02
      TEMPERATURE     3.0000000000000000E+02
      TEMP_KIND  F
@@ -33,34 +33,34 @@
        &CSVR
          TIMECON     9.9999999999999986E+01
          &THERMOSTAT_ENERGY
-              -1.1007126162576142E+02
+              -1.1020595732602489E+02
          &END THERMOSTAT_ENERGY
          &RNG_INIT
-Wiener process for Thermostat # 1        1 F T F  -2.5954052169076478E+00        1479349054.0        3856207361.0        1738383883.0        2987776830.0        2106821350.0        2453393603.0             12345.0             12345.0             12345.0             12345.0             12345.0             12345.0             12345.0             12345.0             12345.0             12345.0             12345.0             12345.0
+Wiener process for Thermostat # 1        1 F T F  -9.2020526125448776E-01        2715137716.0        2265442684.0        1847640365.0         158162658.0        1375683066.0        3491603494.0             12345.0             12345.0             12345.0             12345.0             12345.0             12345.0             12345.0             12345.0             12345.0             12345.0             12345.0             12345.0
          &END RNG_INIT
        &END CSVR
      &END THERMOSTAT
      &AVERAGES  T
        &RESTART_AVERAGES
          ITIMES_START  1
-         AVECPU     1.0454786150939981E+01
+         AVECPU     1.0734195370321469E+01
          AVEHUGONIOT     0.0000000000000000E+00
          AVETEMP_BARO     0.0000000000000000E+00
-         AVEPOT    -7.2823916079191372E+02
-         AVEKIN     9.6850934563847531E+01
-         AVETEMP     2.9987370643144124E+02
-         AVEKIN_QM     1.2660920888624741E-01
-         AVETEMP_QM     3.8076169864119066E+02
+         AVEPOT    -7.2910136030160868E+02
+         AVEKIN     9.6825540298103476E+01
+         AVETEMP     2.9979507969825465E+02
+         AVEKIN_QM     1.2921028581398014E-01
+         AVETEMP_QM     3.8858411912712774E+02
          AVEVOL     5.7717083294881182E+06
-         AVECELL_A     1.7150759807253715E+02
-         AVECELL_B     1.9516288177863936E+02
-         AVECELL_C     1.7243435189344743E+02
+         AVECELL_A     1.7150759807253615E+02
+         AVECELL_B     1.9516288177863632E+02
+         AVECELL_C     1.7243435189344737E+02
          AVEALPHA     9.0000000000000000E+01
          AVEBETA     9.0000000000000000E+01
          AVEGAMMA     9.0000000000000000E+01
-         AVE_ECONS    -2.5484235828635726E-01
-         AVE_PRESS    -2.7921206834566266E+02
-         AVE_PXX    -2.2388378018356181E+02
+         AVE_ECONS    -1.8173901086776847E-01
+         AVE_PRESS    -2.6775077792872219E+02
+         AVE_PXX    -2.3209744654630848E+02
        &END RESTART_AVERAGES
      &END AVERAGES
    &END MD
@@ -71,7 +71,7 @@ Wiener process for Thermostat # 1        1 F T F  -2.5954052169076478E+00       
        OLD_HILL_NUMBER  0
        OLD_HILL_STEP  0
        DO_HILLS  F
-       STEP_START_VAL  2000
+       STEP_START_VAL  5000
        NHILLS_START_VAL  0
        &METAVAR
          SCALE     5.0000000000000000E-01
@@ -81,7 +81,7 @@ Wiener process for Thermostat # 1        1 F T F  -2.5954052169076478E+00       
          &COLVAR  SILENT
            COMMON_ITERATION_LEVELS  3
            &EACH
-             MD  10
+             MD  1
            &END EACH
          &END COLVAR
        &END PRINT
@@ -91,8 +91,8 @@ Wiener process for Thermostat # 1        1 F T F  -2.5954052169076478E+00       
      &COLLECTIVE
        COLVAR  1
        INTERMOLECULAR  T
-       TARGET     3.7794522657712348E+00
-       TARGET_GROWTH     9.1420578484471590E-05
+       TARGET     3.3070207325498195E+00
+       TARGET_GROWTH     3.4282716931676848E-05
        TARGET_LIMIT     3.7794522657712859E+00
        &RESTRAINT
          K     4.4625385281452927E-02
@@ -208,7 +208,7 @@ Wiener process for Thermostat # 1        1 F T F  -2.5954052169076478E+00       
      SPHERICAL_CUTOFF    -5.2917720899999998E-01    0.0000000000000000E+00
      PARALLEL_SCHEME  ATOM
      CENTER  EVERY_STEP
-     INITIAL_TRANSLATION_VECTOR    -1.9772528086016610E+01    1.8762668292558831E+02   -2.1170206134669630E+02
+     INITIAL_TRANSLATION_VECTOR    -1.9857739754267477E+01    1.8741487318377742E+02   -2.0978443193660718E+02
      &QM_KIND H
        MM_INDEX  3023 3024 3602 3603 3607 4651 4652 7680 7682 \
         7684 7686 7688 7690 7692 7694 7695 7697 7701 7703 \

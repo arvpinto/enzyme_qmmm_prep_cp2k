@@ -1,6 +1,6 @@
-! qmmm_md_smd.inp - steered QM/MM MD (NVT, 300 K, 2 ps) along the glycosylation CV, tutorial Section VIII
-! Needs (in the working directory): amylase_ee.prmtop, forceeval_qmmm.cp2k.inc (copies in system_prep/), QMMM_MD_EQ-1.restart(.bin), QMMM_MD_EQ-RESTART.wfn (from qmmm_md_eq.inp)
-! Writes: QMMM_MD_SMD-COLVAR.metadynLog, QMMM_MD_SMD-pos-1.dcd, QMMM_MD_SMD-1.ener
+! smd-nvt-ee_gpw.inp - steered QM/MM MD (NVT, 300 K, 2 ps) along the glycosylation CV, tutorial Section VIII
+! Needs: amylase_ee.prmtop, forceeval_qmmm.cp2k.inc, QMMM_MD_EQ-1.restart(.bin), QMMM_MD_EQ-RESTART.wfn
+! Writes: QMMM_MD_EQ-COLVAR.metadynLog, -pos-1.dcd, -1.ener
 @SET PARM amylase_ee.prmtop
 &GLOBAL
   ECHO_INPUT
@@ -135,7 +135,7 @@
       COLVAR 1
       INTERMOLECULAR TRUE
       TARGET [angstrom] -2.          ! value at t=0; set it close to the CV at the end of the NVT run
-      TARGET_GROWTH [angstrom*fs^-1] .002  ! STEPS = (TARGET_LIMIT - TARGET)/TARGET_GROWTH/TIMESTEP
+      TARGET_GROWTH [angstrom*fs^-1] .00075  ! STEPS = (TARGET_LIMIT - TARGET)/TARGET_GROWTH/TIMESTEP
       TARGET_LIMIT [angstrom] 2.
       &RESTRAINT
         K [angstrom^-2*kcalmol] 100.0  ! restraint energy K*(CV-TARGET)^2
@@ -143,7 +143,7 @@
     &END COLLECTIVE
   &END CONSTRAINT
   &FREE_ENERGY
-    METHOD METADYN     ! no hills (DO_HILLS FALSE): only used to print the CV to QMMM_MD_SMD-COLVAR.metadynLog
+    METHOD METADYN     ! no hills (DO_HILLS FALSE): only used to print the CV to SMD-NVT-EE-GPW-COLVAR.metadynLog
     &METADYN
       DO_HILLS FALSE
       &METAVAR
@@ -154,7 +154,7 @@
         &COLVAR
           COMMON_ITERATION_LEVELS 3
           &EACH
-            MD 10
+            MD 1
           &END EACH
         &END COLVAR
       &END PRINT
@@ -163,7 +163,7 @@
   &MD
     ENSEMBLE NVT
     MAX_STEPS 10000
-    STEPS 2000
+    STEPS 5000
     STEP_START_VAL 0
     TEMPERATURE 300.0
     TEMP_KIND FALSE
