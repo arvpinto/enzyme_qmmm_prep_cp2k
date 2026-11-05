@@ -145,7 +145,7 @@ source cp2k_funcs
 cp2k_opt mm_em.out | tail -6
 </pre>
 
-<p align="justify">plot_cp2k.py plots the energy against the iteration number. The figure is shown on screen and saved at 600 dpi (mm_em_energy.png), and the values are written to mm_em_energy.dat:</p>
+<p align="justify">plot_cp2k.py plots the energy against the iteration number. The figure is shown on screen and saved at 600 dpi (mm_em_energy.png), with a dark background by default (--theme light gives a white one), and the values are written to mm_em_energy.dat:</p>
 
 <pre style="color: white; background-color: black;">
 python3 plot_cp2k.py -h

@@ -467,14 +467,16 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .prose tr:last-child td { border-bottom: 0; }
 .prose td:first-child { color: var(--ink); white-space: nowrap; }
 
-/* Figures (white-background diagrams and plots) */
+/* Figures: the plots are drawn on the --surface colour (plot scripts, --theme dark),
+   so the card blends with the figure background */
 .prose div[align="center"] { margin: 8px 0 1.6em; }
 .prose div[align="center"] img {
   height: auto;
   margin: 0 auto;
   padding: 8px;
+  border: 1px solid var(--line);
   border-radius: 16px;
-  background: #ffffff;
+  background: var(--surface);
 }
 
 /* Highlighted sentences (<p align="center"> directly in the text, not inside headings) */

@@ -10,11 +10,15 @@ Plots of the CP2K runs of the tutorial, shown on screen and saved at 600 dpi.
   temp  temperature of the system against the simulation time of an MD run, from the .ener file,
         with a moving average and the target temperature.
 
+The figures use a dark background by default (--theme dark, matching the tutorial pages);
+--theme light gives a white background for documents and slides.
+
 Usage examples
   python3 plot_cp2k.py opt mm_em.out
   python3 plot_cp2k.py opt qmmm_em_me.out qmmm_em_ee.out --titles "Mechanical embedding,Electrostatic embedding"
   python3 plot_cp2k.py temp QMMM_MD_EQ-1.ener
   python3 plot_cp2k.py temp QMMM_MD_EQ-1.ener --window 200 --target 300 --no-show --prefix md_temp
+  python3 plot_cp2k.py temp QMMM_MD_EQ-1.ener --theme light
 """
 
 import argparse
@@ -27,8 +31,28 @@ import numpy as np
 HARTREE_TO_KCAL = 627.509474
 HARTREE_TO_KJ = 2625.499639
 
-INK, MUTED, GRID = "#1f1f1e", "#6b6a64", "#e4e3de"
-SERIES_1 = "#2a78d6"
+# background, text, axes/ticks, grid and data colours of each theme
+# (dark: same surface and text colours as the tutorial pages)
+THEMES = {
+    "dark": {"bg": "#0e1014", "ink": "#f3f5f8", "muted": "#9ba3b1", "grid": "#262a32", "series": "#3987e5",
+             "faint": 0.5},
+    "light": {"bg": "#ffffff", "ink": "#1f1f1e", "muted": "#6b6a64", "grid": "#e4e3de", "series": "#2a78d6",
+              "faint": 0.35},
+}
+# opacity of the instantaneous temperature trace drawn under its moving average: FAINT
+BG, INK, MUTED, GRID, SERIES_1, FAINT = (THEMES["dark"][k] for k in ("bg", "ink", "muted", "grid", "series", "faint"))
+
+
+def set_theme(name, matplotlib):
+    """Colours of the chosen theme, also applied to the figure, axes, legend and saved file."""
+    global BG, INK, MUTED, GRID, SERIES_1, FAINT
+    th = THEMES[name]
+    BG, INK, MUTED, GRID, SERIES_1, FAINT = th["bg"], th["ink"], th["muted"], th["grid"], th["series"], th["faint"]
+    matplotlib.rcParams.update({
+        "figure.facecolor": BG, "axes.facecolor": BG, "savefig.facecolor": BG, "savefig.edgecolor": BG,
+        "text.color": INK, "axes.labelcolor": INK, "axes.edgecolor": MUTED,
+        "xtick.color": MUTED, "ytick.color": MUTED, "grid.color": GRID,
+    })
 
 
 # ------------------------------------------------------------------------------------------ input
@@ -42,6 +66,8 @@ def parse_args():
                         help="Name of the output .png and .dat files (default: from the first input file)")
     common.add_argument("--dpi", type=int, default=600, help="Resolution of the saved figure")
     common.add_argument("--no-show", action="store_true", help="Do not open a window with the plot (only save it)")
+    common.add_argument("--theme", choices=sorted(THEMES), default="dark",
+                        help="Colour theme: dark background (tutorial pages) or white background")
 
     po = sub.add_parser("opt", parents=[common], formatter_class=argparse.ArgumentDefaultsHelpFormatter,
                         help="Energy against the iteration number of GEO_OPT runs")
@@ -163,7 +189,7 @@ def plot_temp(a, plt):
           f"over the run, {temp[late].mean():.1f} +/- {temp[late].std():.1f} K over the second half")
 
     fig, ax = plt.subplots(figsize=(7.0, 3.4), constrained_layout=True)
-    ax.plot(t * tconv, temp, color=SERIES_1, alpha=0.35, linewidth=0.8, label="instantaneous")
+    ax.plot(t * tconv, temp, color=SERIES_1, alpha=FAINT, linewidth=0.8, label="instantaneous")
     ax.plot(t * tconv, avg, color=SERIES_1, linewidth=2.0, label=f"{a.window:g} fs moving average")
     ax.axhline(a.target, color=MUTED, linewidth=1.2, linestyle=(0, (4, 3)), label=f"target {a.target:g} K")
     ax.set_xlabel(f"Time ({tlab})")
@@ -186,6 +212,7 @@ def main():
     if a.no_show:
         matplotlib.use("Agg")
     import matplotlib.pyplot as plt
+    set_theme(a.theme, matplotlib)
 
     fig, prefix = plot_opt(a, plt) if a.mode == "opt" else plot_temp(a, plt)
     fig.savefig(f"{prefix}.png", dpi=a.dpi)

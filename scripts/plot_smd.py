@@ -31,6 +31,10 @@ Usage examples
       --dcd QMMM_MD_SMD-pos-1.dcd --pairs "7699:7700 3607:7699 3026:7700 3607:7783 7785:7699" \\
       --pair-labels "O4-C1,HE2-O4,OD1-C1,HE2-Ow,H2w-O4"
   python3 plot_smd.py -l QMMM_MD_SMD-COLVAR.metadynLog -o qmmm_md_smd.out --xunit ps --no-show
+  python3 plot_smd.py -l QMMM_MD_SMD-COLVAR.metadynLog -o qmmm_md_smd.out --theme light
+
+The figure uses a dark background by default (--theme dark, matching the tutorial pages);
+--theme light gives a white background for documents and slides.
 """
 
 import argparse
@@ -46,9 +50,28 @@ HARTREE_TO_KJ = 2625.499639
 BOHR_TO_ANG = 0.529177210903
 AUT_PER_FS = 41.341373336  # atomic time units per fs
 
-INK, MUTED, GRID = "#1f1f1e", "#6b6a64", "#e4e3de"
-# categorical colours, assigned in this order (at most 8 distances)
-SERIES = ["#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4", "#008300", "#6250d6", "#e34948"]
+# background, text, axes/ticks, grid and categorical colours of each theme (series assigned in this
+# order, at most 8 distances); dark: same surface and text colours as the tutorial pages
+THEMES = {
+    "dark": {"bg": "#0e1014", "ink": "#f3f5f8", "muted": "#9ba3b1", "grid": "#262a32",
+             "series": ["#3987e5", "#d95926", "#199e70", "#c98500", "#d55181", "#008300", "#9085e9", "#e66767"]},
+    "light": {"bg": "#ffffff", "ink": "#1f1f1e", "muted": "#6b6a64", "grid": "#e4e3de",
+              "series": ["#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4", "#008300", "#6250d6", "#e34948"]},
+}
+BG, INK, MUTED, GRID = (THEMES["dark"][k] for k in ("bg", "ink", "muted", "grid"))
+SERIES = list(THEMES["dark"]["series"])
+
+
+def set_theme(name, matplotlib):
+    """Colours of the chosen theme, also applied to the figure, axes, legend and saved file."""
+    global BG, INK, MUTED, GRID, SERIES
+    th = THEMES[name]
+    BG, INK, MUTED, GRID, SERIES = th["bg"], th["ink"], th["muted"], th["grid"], list(th["series"])
+    matplotlib.rcParams.update({
+        "figure.facecolor": BG, "axes.facecolor": BG, "savefig.facecolor": BG, "savefig.edgecolor": BG,
+        "text.color": INK, "axes.labelcolor": INK, "axes.edgecolor": MUTED,
+        "xtick.color": MUTED, "ytick.color": MUTED, "grid.color": GRID,
+    })
 
 
 # ------------------------------------------------------------------------------------------ input
@@ -88,6 +111,8 @@ def parse_args():
     ap.add_argument("--prefix", default="plot_smd", help="Prefix of the output .png and .dat files")
     ap.add_argument("--dpi", type=int, default=600, help="Resolution of the saved figure")
     ap.add_argument("--no-show", action="store_true", help="Do not open a window with the plot (only save it)")
+    ap.add_argument("--theme", choices=sorted(THEMES), default="dark",
+                    help="Colour theme: dark background (tutorial pages) or white background")
     return ap.parse_args()
 
 
@@ -334,6 +359,7 @@ def main():
     if a.no_show:
         matplotlib.use("Agg")
     import matplotlib.pyplot as plt
+    set_theme(a.theme, matplotlib)
 
     panels = 3 if dist is not None else 2
     fig, axes = plt.subplots(panels, 1, figsize=(7.0, 2.4 * panels), sharex=True, constrained_layout=True)

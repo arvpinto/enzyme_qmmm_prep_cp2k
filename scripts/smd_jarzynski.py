@@ -21,6 +21,9 @@ With a single trajectory both reduce to W itself (an upper bound, not a PMF).
 Input: CP2K *.metadynLog files (col 1 = time in fs, col 2 = CV in internal units,
 i.e. bohr for distance CVs). Restraint parameters are read from the CP2K output
 file (--out) or given explicitly on the command line (internal CP2K units).
+
+The figure uses a dark background by default (--theme dark, matching the tutorial
+pages); --theme light gives a white background for documents and slides.
 """
 
 import argparse
@@ -34,6 +37,36 @@ HARTREE_TO_KJ = 2625.499639
 BOHR_TO_ANG = 0.529177210903
 AUT_PER_FS = 41.341373336  # atomic time units per fs
 KB_HARTREE = 3.166811563e-6  # Boltzmann constant in Ha/K
+
+# background, text, axes/ticks, grid, replica, main and second series colours of each theme
+# (dark: same surface and text colours as the tutorial pages)
+THEMES = {
+    "dark": {"bg": "#0e1014", "ink": "#f3f5f8", "muted": "#9ba3b1", "grid": "#262a32",
+             "replica": "#4b515c", "s1": "#3987e5", "s2": "#e66767"},
+    "light": {"bg": "#ffffff", "ink": "#1f1f1e", "muted": "#6b6a64", "grid": "#e4e3de",
+              "replica": "#bfbfbf", "s1": "#1f5aa6", "s2": "#c0392b"},
+}
+
+
+def set_theme(name, matplotlib):
+    """Apply the colours of the chosen theme to the figure, axes, legend and saved file."""
+    th = THEMES[name]
+    matplotlib.rcParams.update({
+        "figure.facecolor": th["bg"], "axes.facecolor": th["bg"],
+        "savefig.facecolor": th["bg"], "savefig.edgecolor": th["bg"],
+        "text.color": th["ink"], "axes.labelcolor": th["ink"], "axes.titlecolor": th["ink"],
+        "axes.edgecolor": th["muted"], "xtick.color": th["muted"], "ytick.color": th["muted"],
+        "xtick.labelcolor": th["ink"], "ytick.labelcolor": th["ink"], "grid.color": th["grid"],
+    })
+    return th
+
+
+def style(ax):
+    """Open axes (no top/right spines) on a recessive grid."""
+    ax.grid(True, linewidth=0.6)
+    ax.set_axisbelow(True)
+    for side in ("top", "right"):
+        ax.spines[side].set_visible(False)
 
 
 def parse_cp2k_out(path):
@@ -129,6 +162,8 @@ def main():
     ap.add_argument("--prefix", default="smd_jarzynski", help="Prefix for output .dat and .png files")
     ap.add_argument("--dpi", type=int, default=600, help="Figure resolution")
     ap.add_argument("--no-show", action="store_true", help="Do not open an interactive plot window")
+    ap.add_argument("--theme", choices=sorted(THEMES), default="dark",
+                    help="Colour theme: dark background (tutorial pages) or white background")
     args = ap.parse_args()
 
     p = parse_cp2k_out(args.out) if args.out else {}
@@ -204,28 +239,32 @@ def main():
     if args.no_show:
         matplotlib.use("Agg")
     import matplotlib.pyplot as plt
+    th = set_theme(args.theme, matplotlib)
 
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 4))
     for w in wmat:
-        ax1.plot(x, w * e_conv, color="0.75", lw=0.8, zorder=1)
+        ax1.plot(x, w * e_conv, color=th["replica"], lw=0.8, zorder=1)
     if nrep > 1:
-        ax1.plot(x, f_jar * e_conv, color="#1f5aa6", lw=2, label="Jarzynski")
-        ax1.fill_between(x, (f_jar - e_jar) * e_conv, (f_jar + e_jar) * e_conv, color="#1f5aa6", alpha=0.2)
-        ax1.plot(x, f_cum * e_conv, color="#c0392b", lw=1.5, ls="--", label="2nd-order cumulant")
+        ax1.plot(x, f_jar * e_conv, color=th["s1"], lw=2, label="Jarzynski")
+        ax1.fill_between(x, (f_jar - e_jar) * e_conv, (f_jar + e_jar) * e_conv, color=th["s1"], alpha=0.25,
+                         linewidth=0)
+        ax1.plot(x, f_cum * e_conv, color=th["s2"], lw=1.5, ls="--", label="2nd-order cumulant")
         ax1.legend(frameon=False)
     else:
-        ax1.plot(x, wmat[0] * e_conv, color="#1f5aa6", lw=2, label="W (single trajectory)")
+        ax1.plot(x, wmat[0] * e_conv, color=th["s1"], lw=2, label="W (single trajectory)")
         ax1.legend(frameon=False)
     ax1.set_xlabel(f"{xname} ({x_lab})")
     ax1.set_ylabel(f"Free energy / work ({e_lab})")
     ax1.set_title(f"SMD work, N = {nrep}")
+    style(ax1)
 
-    ax2.plot(ref_t / 1000, smean * x_conv, color="#1f5aa6", lw=1.2, label="CV  s(t)")
-    ax2.plot(ref_t / 1000, lam * x_conv, color="k", lw=1, ls="--", label="restraint centre  λ(t)")
+    ax2.plot(ref_t / 1000, smean * x_conv, color=th["s1"], lw=1.2, label="CV  s(t)")
+    ax2.plot(ref_t / 1000, lam * x_conv, color=th["muted"], lw=1.2, ls="--", label="restraint centre  λ(t)")
     ax2.set_xlabel("time (ps)")
     ax2.set_ylabel(f"CV ({x_lab})")
     ax2.set_title("CV lag behind the restraint")
     ax2.legend(frameon=False)
+    style(ax2)
 
     fig.tight_layout()
     png = f"{args.prefix}.png"
