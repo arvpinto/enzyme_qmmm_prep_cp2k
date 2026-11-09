@@ -259,7 +259,7 @@ python3 plot_cp2k.py opt qmmm_em_me.out qmmm_em_ee.out --prefix qmmm_em_energy \
 wget https://github.com/arvpinto/enzyme_qmmm_prep_cp2k/releases/latest/download/QMMM_EM_ME-pos-1.dcd
 wget https://github.com/arvpinto/enzyme_qmmm_prep_cp2k/releases/latest/download/QMMM_EM_EE-pos-1.dcd
 vmd -e vmd_cp2k-repr.tcl -args amylase_ee.prmtop QMMM_EM_ME-pos-1.dcd QMMM_EM_EE-pos-1.dcd \
-    -qminc forceeval_qmmm.cp2k.inc -bonds "7699:7700 3607:7699 3026:7700"
+    -qminc forceeval_qmmm.cp2k.inc -bonds "7699:7700,3607:7699,3026:7700"
 </pre>
 
 <p align="justify">Look at the atoms at both ends of the five QM/MM bonds (drawn as CPK by vmd_cp2k-repr.tcl), the hydrogen bonds of Asp299 with the O2 and O3 hydroxyls of the -1 sugar, the water of the QM region and the rotation of the Glu232 carboxylic group. The topology only gives VMD the atom names and bonds, so amylase.prmtop and amylase_ee.prmtop are interchangeable here.</p>
