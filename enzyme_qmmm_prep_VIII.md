@@ -165,7 +165,7 @@ cp2k_colvar QMMM_MD_SMD-COLVAR.metadynLog | sed -n '1,3p;$p'
 wget https://github.com/arvpinto/enzyme_qmmm_prep_cp2k/releases/latest/download/QMMM_MD_SMD-pos-1.dcd
 vmd -e vmd_cp2k-repr.tcl -args amylase_ee.prmtop QMMM_MD_SMD-pos-1.dcd \
     -qminc forceeval_qmmm.cp2k.inc \
-    -bonds "7699:7700 3607:7699 3026:7700 3607:7783 7785:7699"
+    -bonds "7699:7700,3607:7699,3026:7700,3607:7783,7785:7699"
 </pre>
 
 <br/>
