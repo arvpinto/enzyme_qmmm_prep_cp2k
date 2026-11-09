@@ -160,7 +160,7 @@ wrote qmmm_md_eq_temperature.png (600 dpi)
 <pre style="color: white; background-color: black;">
 wget https://github.com/arvpinto/enzyme_qmmm_prep_cp2k/releases/latest/download/QMMM_MD_EQ-pos-1.dcd
 vmd -e vmd_cp2k-repr.tcl -args amylase_ee.prmtop QMMM_MD_EQ-pos-1.dcd \
-    -qminc forceeval_qmmm.cp2k.inc -bonds "7699:7700 3607:7699 3026:7700"
+    -qminc forceeval_qmmm.cp2k.inc -bonds "7699:7700,3607:7699,3026:7700"
 </pre>
 
 <p align="justify">The CV of the next section is the difference between the glycosidic bond C1(501)-O4(500) and the distance between the acidic proton of Glu232 and the same O4 (serials 7700, 7699 and 3607). Measure it along the trajectory in the VMD console (index = serial - 1), or plot the labels from Graphics > Labels > Bonds > Graph:</p>
