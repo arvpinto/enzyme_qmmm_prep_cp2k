@@ -24,6 +24,7 @@
 #   -selfile <file>      file with the QM layer selection (VMD syntax)
 #   -qminc <file>        take the QM layer from the &QM_KIND sections of a CP2K include/input file
 #   -bonds "i:j ..."     pairs of atom serial numbers (1-based, as in CP2K) to label as distances
+#                        (space- or comma-separated; quoting the list is recommended)
 #   -first <n>           first frame to load from each trajectory (0-based, default 0)
 #   -last <n>            last frame to load from each trajectory (default -1 = last frame)
 #   -step <n>            load every n-th frame (default: 1, or larger if the trajectory
@@ -118,7 +119,16 @@ for {set i 0} {$i < [llength $argv]} {incr i} {
             }
             set qm_str "serial [lsort -unique -integer $serials]"
         }
-        -bonds   { incr i; set bond_pairs [lindex $argv $i] }
+        -bonds   {
+            # accept "i:j k:l" as one argument, and also i:j k:l as separate arguments
+            # (in case the quoted string was split on the way into VMD's argv)
+            incr i
+            foreach p [split [string map {, " "} [lindex $argv $i]]] { if { $p ne "" } { lappend bond_pairs $p } }
+            while { $i + 1 < [llength $argv] && [regexp {^\d+[:-]\d+$} [lindex $argv [expr {$i + 1}]]] } {
+                incr i
+                lappend bond_pairs [lindex $argv $i]
+            }
+        }
         -first   { incr i; set first [lindex $argv $i] }
         -last    { incr i; set last [lindex $argv $i] }
         -step    { incr i; set step [lindex $argv $i] }
@@ -279,7 +289,9 @@ foreach id $heavyqm_index conects $heavyqm_bonds {
     foreach conect $conects {
         if { [lsearch -exact $qm_index $conect] == -1 } {
             lappend link_index "$id" "$conect"
-            label add Bonds $topid/$id $topid/$conect
+            if { [catch {label add Bonds $topid/$id $topid/$conect} err] } {
+                puts "WARNING: could not label the QM/MM boundary bond $id-$conect: $err"
+            }
         }
     }
 }
@@ -293,9 +305,31 @@ if { [llength $link_index] > 0 } {
 
 #--> distances to follow along the trajectory (serial numbers, 1-based)
 foreach pair $bond_pairs {
-    lassign [split $pair ":"] s1 s2
-    label add Bonds $topid/[expr $s1-1] $topid/[expr $s2-1]
-    puts "CONTROL STRING: label for the distance between serials $s1 and $s2 (Graphics > Labels > Bonds > Graph)"
+    if { ![regexp {^(\d+)[:-](\d+)$} [string trim $pair] -> s1 s2] } {
+        puts "WARNING: -bonds entry \"$pair\" is not of the form i:j, skipped."
+        continue
+    }
+    if { $s1 < 1 || $s2 < 1 || $s1 > $natoms || $s2 > $natoms } {
+        puts "WARNING: -bonds pair $s1:$s2 is outside the serial range 1-$natoms, skipped."
+        continue
+    }
+    if { $s1 == $s2 } {
+        puts "WARNING: -bonds pair $s1:$s2 uses the same atom twice, skipped."
+        continue
+    }
+    set a1 [expr {$s1 - 1}]
+    set a2 [expr {$s2 - 1}]
+    if { [catch {label add Bonds $topid/$a1 $topid/$a2} err] } {
+        puts "WARNING: could not add the label for serials $s1:$s2 (indices $a1:$a2): $err"
+        continue
+    }
+    set names [list]
+    foreach a [list $a1 $a2] {
+        set s [atomselect $topid "index $a"]
+        lappend names "[$s get resname][$s get resid]:[$s get name]"
+        $s delete
+    }
+    puts "CONTROL STRING: label for the distance between serials $s1 and $s2 ([join $names { - }]) (Graphics > Labels > Bonds > Graph)"
 }
 
 animate goto 0
