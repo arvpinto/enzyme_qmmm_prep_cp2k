@@ -12,7 +12,7 @@
 <br>
 
 <div align="center">
-    <img src="workflow.png" width="90%">
+    <img src="workflow.png" data-light-src="workflow_light.png" width="90%">
 </div>
 
 <br>

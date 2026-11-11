@@ -153,7 +153,7 @@ python3 plot_cp2k.py opt mm_em.out --titles "MM minimization (mm_em)"
 </pre>
 
 <div align="center">
-    <img src="assets/img/mm_em_energy.png" width="75%">
+    <img src="assets/img/mm_em_energy.png" data-light-src="assets/img/mm_em_energy_light.png" width="75%">
 </div>
 
 <p align="justify">The energy drops by about 150 hartree (94 000 kcal/mol), more than 80 % of it in the first 100 iterations, where the worst contacts of the starting structure and the gaps at the faces of the new box are removed. After that it keeps decreasing slowly: the minimization is not converged after 1000 iterations, which is fine here, since the goal is to remove the strain before the QM/MM steps.</p>

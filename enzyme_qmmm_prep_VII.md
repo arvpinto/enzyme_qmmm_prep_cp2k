@@ -128,7 +128,7 @@ wrote qmmm_md_eq_temperature.png (600 dpi)
 </pre>
 
 <div align="center">
-    <img src="assets/img/qmmm_md_eq_temperature.png" width="85%">
+    <img src="assets/img/qmmm_md_eq_temperature.png" data-light-src="assets/img/qmmm_md_eq_temperature_light.png" width="85%">
 </div>
 
 <br/>

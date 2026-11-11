@@ -226,7 +226,7 @@ python3 smd_jarzynski.py -l QMMM_MD_SMD-COLVAR.metadynLog -o qmmm_md_smd.out
 <br/>
 
 <div align="center">
-    <img src="assets/img/smd_jarzynski.png" width="100%">
+    <img src="assets/img/smd_jarzynski.png" data-light-src="assets/img/smd_jarzynski_light.png" width="100%">
 </div>
 
 <br/>

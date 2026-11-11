@@ -203,7 +203,7 @@ python3 plot_cp2k.py opt qmmm_em_me.out qmmm_em_ee.out --prefix qmmm_em_energy \
 </pre>
 
 <div align="center">
-    <img src="assets/img/qmmm_em_energy.png" width="100%">
+    <img src="assets/img/qmmm_em_energy.png" data-light-src="assets/img/qmmm_em_energy_light.png" width="100%">
 </div>
 
 <p align="justify">The two runs use different Hamiltonians, so their absolute energies cannot be compared, only their shapes. The mechanical embedding energy decreases almost linearly, by 1050 kcal/mol in 500 iterations, and is still going down when MAX_ITER stops the run: the environment around the QM region is still relaxing. The electrostatic embedding energy drops by 3700 kcal/mol, most of it in the first 100 iterations, while the QM density and the MM charges around it adjust to each other, and then levels off until the optimizer converges at iteration 737.</p>

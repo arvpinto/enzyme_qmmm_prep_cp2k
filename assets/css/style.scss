@@ -40,8 +40,9 @@
   --code-bg: #0a0c10;
   --code-ink: #e3e7ee;
   /* Plots, movies and the 3D viewer are drawn on this colour (plot scripts,
-     --theme dark). It is the same in both modes, so they always sit on a
-     plate of their own background. */
+     --theme dark). The scheme and the plots have a white version for light
+     mode (see "Figures" below); the movies and the 3D viewer keep this
+     colour in both modes. */
   --figure: #0e1014;
   --figure-line: #20242b;
 
@@ -576,7 +577,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .prose td:first-child { color: var(--ink); white-space: nowrap; }
 
 /* Figures: the plots are drawn on the --figure colour (plot scripts, --theme dark),
-   so the plate blends with the figure background in both modes. */
+   so the plate blends with the figure background. */
 .prose div[align="center"] { margin: 8px 0 1.6em; }
 .prose div[align="center"] img {
   height: auto;
@@ -585,6 +586,12 @@ button { font: inherit; color: inherit; cursor: pointer; }
   border: 1px solid var(--figure-line);
   border-radius: 16px;
   background: var(--figure);
+}
+
+/* Figures with a white version (data-light-src, swapped by tutorial.js) sit on a white plate in light mode. */
+:root[data-theme="light"] .prose div[align="center"] img[data-light-src] {
+  border-color: var(--line);
+  background: #ffffff;
 }
 
 /* Highlighted sentences (<p align="center"> directly in the text, not inside headings) */
