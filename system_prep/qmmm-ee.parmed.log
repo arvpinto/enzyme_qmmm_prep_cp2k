@@ -1,0 +1,107 @@
+
+                                  /^^^/           /]
+                                 /   ]           / ]
+                         _______/    ]___       /  ]
+                        /                \_____/   /
+                      _/   [@]  \ \                \
+                     /..         | |                ]
+                      VVVvvv\    | |         _/\    ]
+          P A R M E D       |               /    \  ]
+                     AAA^^^^^              /       \]
+                      \_________\   \_____/
+                                \    \
+                                 \____\
+
+ParmEd: a Parameter file Editor
+
+
+['qmmm-ee.parmed.in']
+Reading actions from qmmm-ee.parmed.in
+
+Adding prmtop amylase.prmtop to parm list. amylase.prmtop is the active parm.
+Changing CHARGE of atom # 3018 (N) from -0.5163 to -0.4926
+
+Changing CHARGE of atom # 3019 (H) from 0.2936 to 0.3172
+
+Changing CHARGE of atom # 3020 (CA) from 0.038099999999999995 to 0.0618
+
+Changing CHARGE of atom # 3021 (HA) from 0.088 to 0.1117
+
+Changing CHARGE of atom # 3028 (C) from 0.5366000000000001 to 0.5602
+
+Changing CHARGE of atom # 3029 (O) from -0.5819000016463345 to -0.5582
+
+Changing CHARGE of atom # 3594 (N) from -0.4157 to -0.4182
+
+Changing CHARGE of atom # 3595 (H) from 0.27190000000000003 to 0.2694
+
+Changing CHARGE of atom # 3596 (CA) from 0.0145 to 0.0120
+
+Changing CHARGE of atom # 3597 (HA) from 0.0779 to 0.0754
+
+Changing CHARGE of atom # 3598 (CB) from -0.0071 to -0.0096
+
+Changing CHARGE of atom # 3599 (HB2) from 0.025599999999999998 to 0.0231
+
+Changing CHARGE of atom # 3600 (HB3) from 0.025599999999999998 to 0.0231
+
+Changing CHARGE of atom # 3608 (C) from 0.5973000005487781 to 0.5948
+
+Changing CHARGE of atom # 3609 (O) from -0.5679000016463344 to -0.5704
+
+Changing CHARGE of atom # 4646 (N) from -0.5163 to -0.4926
+
+Changing CHARGE of atom # 4647 (H) from 0.2936 to 0.3172
+
+Changing CHARGE of atom # 4648 (CA) from 0.038099999999999995 to 0.0618
+
+Changing CHARGE of atom # 4649 (HA) from 0.088 to 0.1117
+
+Changing CHARGE of atom # 4656 (C) from 0.5366000000000001 to 0.5602
+
+Changing CHARGE of atom # 4657 (O) from -0.5819000016463345 to -0.5582
+
+Changing CHARGE of atom # 7658 (C1) from 0.5089999999999999 to 0.4856
+
+Changing CHARGE of atom # 7659 (H1) from 0.0 to -0.0234
+
+Changing CHARGE of atom # 7660 (C2) from 0.24599999999999997 to 0.2226
+
+Changing CHARGE of atom # 7661 (H2) from 0.0 to -0.0234
+
+Changing CHARGE of atom # 7662 (O2) from -0.713 to -0.7364
+
+Changing CHARGE of atom # 7663 (H2O) from 0.437 to 0.4136
+
+Changing CHARGE of atom # 7664 (C3) from 0.286 to 0.2626
+
+Changing CHARGE of atom # 7665 (H3) from 0.0 to -0.0234
+
+Changing CHARGE of atom # 7666 (O3) from -0.699 to -0.7224
+
+Changing CHARGE of atom # 7667 (H3O) from 0.427 to 0.4036
+
+Changing CHARGE of atom # 7668 (C4) from 0.254 to 0.2306
+
+Changing CHARGE of atom # 7669 (H4) from 0.0 to -0.0234
+
+Changing CHARGE of atom # 7670 (C5) from 0.283 to 0.2596
+
+Changing CHARGE of atom # 7671 (H5) from 0.0 to -0.0234
+
+Changing CHARGE of atom # 7672 (C6) from 0.276 to 0.2526
+
+Changing CHARGE of atom # 7673 (H62) from 0.0 to -0.0234
+
+Changing CHARGE of atom # 7674 (H61) from 0.0 to -0.0234
+
+Changing CHARGE of atom # 7675 (O6) from -0.6819999999999999 to -0.7054
+
+Changing CHARGE of atom # 7676 (H6O) from 0.418 to 0.3946
+
+Changing CHARGE of atom # 7677 (O5) from -0.5740000000000001 to -0.5974
+
+Changing @%HO,ho Lennard-Jones well depth from 0.0000 to 0.0470 (kal/mol) and radius from 0.0000 to 0.3019 (Angstroms)
+Changing @%HW,hw Lennard-Jones well depth from 0.0000 to 0.0470 (kal/mol) and radius from 0.0000 to 0.3019 (Angstroms)
+Outputting Amber topology file amylase_ee.prmtop
+Done!
